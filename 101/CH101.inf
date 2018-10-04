@@ -1,0 +1,9 @@
+range{start$8006;end$8008;type bytetable;};
+range{start$8009;end$801a;type texttable;};
+range{start$82fc;end$8303;type texttable;};
+range{start$8304;end$830b;type texttable;};
+
+# end of command tables
+range{start$9143;end$9144;type dbytetable;};
+range{start$90fb;end$90fc;type dbytetable;};
+range{start$915a;end$915b;type dbytetable;};
