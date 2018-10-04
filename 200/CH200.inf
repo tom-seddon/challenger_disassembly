@@ -1,0 +1,33 @@
+range{start$8006;end$8008;type bytetable;};
+range{start$8009;end$802a;type texttable;};
+range{start$a5d1;end$a635;type texttable;};
+range{start$9c91;end$9c97;type bytetable;};
+
+# an exception to the usual $a892 arrangement
+# range{start$bcb2;end$bcb8;type texttable;};
+
+range{start$9007;end$900d;type bytetable;};
+range{start$900e;end$9032;type texttable;};
+
+# range{start$90b4;end$91a7;type bytetable;};
+range{start$834b;end$835a;type texttable;};
+# range{start$bd06;end$bd07;type code;};
+range{start$bd52;end$bd59;type bytetable;}; #see ba79
+range{start$bc42;end$bc8b;type bytetable;};
+range{start$bfbb;end$bfbf;type bytetable;};
+range{start$bfc0;end$bfc4;type bytetable;};
+range{start$adf9;end$ae06;type addrtable;};
+range{start$ae07;end$ae14;type addrtable;};
+range{start$ae15;end$ae20;type bytetable;};
+range{start$ae21;end$ae2c;type bytetable;};
+range{start$ae2d;end$ae2f;type bytetable;};
+range{start$ae30;end$ae32;type bytetable;};
+range{start$ae33;end$ae3a;type bytetable;};
+range{start$ae3b;end$ae42;type bytetable;};
+range{start$ae43;end$ae4b;type bytetable;};
+range{start$ae4c;end$ae54;type bytetable;};
+range{start$ae55;end$ae5d;type bytetable;};
+range{start$97f4;end$9807;type rtstable;};
+
+range{start$adb7;end$adbe;type bytetable;};
+range{start$b8ef;end$b8f6;type bytetable;};
