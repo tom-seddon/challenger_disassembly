@@ -1,5 +1,5 @@
 ; da65 V2.17 - Git df3c43be
-; Created:    2018-10-04 12:03:09
+; Created:    2018-10-04 12:59:25
 ; Input file: CH200.rom
 ; Page:       1
 
@@ -88,7 +88,7 @@ svc_handle_absolute_workspace_claim:
         beq     L8053                           ; 8046 F0 0B    ..
         lda     #$65                            ; 8048 A9 65    .e
         sta     $FD00                           ; 804A 8D 00 FD ...
-        jsr     LAB6A                           ; 804D 20 6A AB  j.
+        jsr     reset_current_drive_mappings    ; 804D 20 6A AB  j.
         jsr     LBA00                           ; 8050 20 00 BA  ..
 L8053:  lda     #$E5                            ; 8053 A9 E5    ..
         cmp     $FDFD                           ; 8055 CD FD FD ...
@@ -5867,7 +5867,7 @@ LAB26:  jsr     select_ram_page_001             ; AB26 20 0C BE  ..
 
 ; ----------------------------------------------------------------------------
 LAB31:  cmp     #$52                            ; AB31 C9 52    .R
-        beq     LAB6A                           ; AB33 F0 35    .5
+        beq     reset_current_drive_mappings    ; AB33 F0 35    .5
 LAB35:  jsr     gsread                          ; AB35 20 C5 FF  ..
         jsr     LAABA                           ; AB38 20 BA AA  ..
         bit     $FDFF                           ; AB3B 2C FF FD ,..
@@ -5894,9 +5894,11 @@ LAB43:  sta     $B0                             ; AB43 85 B0    ..
 LAB67:  jmp     LA56B                           ; AB67 4C 6B A5 Lk.
 
 ; ----------------------------------------------------------------------------
-LAB6A:  bit     $FDFF                           ; AB6A 2C FF FD ,..
-        bvs     LAB81                           ; AB6D 70 12    p.
-LAB6F:  jsr     select_ram_page_000             ; AB6F 20 07 BE  ..
+reset_current_drive_mappings:
+        bit     $FDFF                           ; AB6A 2C FF FD ,..
+        bvs     reset_adfs_drive_mappings       ; AB6D 70 12    p.
+reset_dfs_drive_mappings:
+        jsr     select_ram_page_000             ; AB6F 20 07 BE  ..
         ldx     #$07                            ; AB72 A2 07    ..
 LAB74:  txa                                     ; AB74 8A       .
         sta     $FD00,x                         ; AB75 9D 00 FD ...
@@ -5905,9 +5907,10 @@ LAB74:  txa                                     ; AB74 8A       .
         jmp     select_ram_page_001             ; AB7B 4C 0C BE L..
 
 ; ----------------------------------------------------------------------------
-chadfs_request_03:
-        jsr     LAB6F                           ; AB7E 20 6F AB  o.
-LAB81:  jsr     select_ram_page_000             ; AB81 20 07 BE  ..
+reset_all_drive_mappings:
+        jsr     reset_dfs_drive_mappings        ; AB7E 20 6F AB  o.
+reset_adfs_drive_mappings:
+        jsr     select_ram_page_000             ; AB81 20 07 BE  ..
         ldx     #$07                            ; AB84 A2 07    ..
 LAB86:  txa                                     ; AB86 8A       .
         sta     $FD08,x                         ; AB87 9D 08 FD ...
