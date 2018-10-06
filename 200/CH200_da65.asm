@@ -1,5 +1,3 @@
-; da65 V2.17 - Git df3c43be
-; Created:    2018-10-06 18:02:21
 ; Input file: CH200.rom
 ; Page:       1
 

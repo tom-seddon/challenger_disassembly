@@ -16,11 +16,11 @@ https://stardot.org.uk/forums/viewtopic.php?f=32&t=11795&hilit=challenger+adfs&s
 ## `200`
 
 Disassembly of Challenger 2.00 ROM. The ROM is 32K, so it's in two
-parts - see `CH200.asm` and `CHADFS.asm`
+parts - see `CH200_da65.asm` and `CHADFS_da65.asm`
 
 ## `101`
 
-Quick disassembly of the Challenger 1.01 ROM - see `CH101.asm`.
+Quick disassembly of the Challenger 1.01 ROM - see `CH101_da65.asm`.
 
 Not sure how far I'm going to go with this. For now it's for
 comparison to the 2.00 ROM only.
@@ -67,8 +67,8 @@ Prerequisites:
 
 The build process does the following:
 
-* run da65 to generate initial Challenger 1.01 disassembly (outputs `./101/CH101.asm`)
-* run da65 to generate initial Challenger 2.00 disassembly (outputs `./200/CH200.asm` and `./200/CHADFS.asm`)
+* run da65 to generate initial Challenger 1.01 disassembly (outputs `./101/CH101_da65.asm`)
+* run da65 to generate initial Challenger 2.00 disassembly (outputs `./200/CH200_da65.asm` and `./200/CHADFS_da65.asm`)
 * run `./tools/patch_ch200.py` to generate patched Challenger 2.00 ROM for use on BBC B (outputs `./beeb/chaldis/1/R.CH200P`)
 
 Type `make` to run it.
