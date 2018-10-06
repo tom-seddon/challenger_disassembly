@@ -1,5 +1,5 @@
 ; da65 V2.17 - Git df3c43be
-; Created:    2018-10-06 16:36:48
+; Created:    2018-10-06 18:02:21
 ; Input file: CH200.rom
 ; Page:       1
 
@@ -1948,7 +1948,7 @@ L8ED0:  dey                                     ; 8ED0 88       .
         jmp     print_char_without_spool        ; 8ED4 4C 51 A9 LQ.
 
 ; ----------------------------------------------------------------------------
-print_disc_title:
+print_disc_title_and_cycle_number:
         ldy     #$0B                            ; 8ED7 A0 0B    ..
         jsr     print_N_spaces_without_spool    ; 8ED9 20 DD 8A  ..
 L8EDC:  jsr     select_ram_page_002             ; 8EDC 20 11 BE  ..
@@ -3361,7 +3361,7 @@ L98CC:  jsr     select_ram_page_000             ; 98CC 20 07 BE  ..
         txa                                     ; 98D4 8A       .
         pha                                     ; 98D5 48       H
         jsr     L961F                           ; 98D6 20 1F 96  ..
-        jsr     print_disc_title                ; 98D9 20 D7 8E  ..
+        jsr     print_disc_title_and_cycle_number; 98D9 20 D7 8E ..
         jsr     L8F88                           ; 98DC 20 88 8F  ..
         jsr     L8DCA                           ; 98DF 20 CA 8D  ..
         pla                                     ; 98E2 68       h
@@ -3377,7 +3377,7 @@ L98E4:  clc                                     ; 98E4 18       .
 
 ; ----------------------------------------------------------------------------
 L98F3:  jsr     L961F                           ; 98F3 20 1F 96  ..
-        jsr     print_disc_title                ; 98F6 20 D7 8E  ..
+        jsr     print_disc_title_and_cycle_number; 98F6 20 D7 8E ..
         jsr     L8F0B                           ; 98F9 20 0B 8F  ..
         jsr     L8F88                           ; 98FC 20 88 8F  ..
         jsr     L8FB8                           ; 98FF 20 B8 8F  ..

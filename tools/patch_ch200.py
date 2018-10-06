@@ -12,17 +12,26 @@ import os,os.path,argparse
 def main(options):
     with open(options.input_path,'rb') as f: data=[ord(x) for x in f.read()]
 
-    # Adjust version number.
-    for addr in [0x8016,0xae74]:
-        o=addr-0x8000
-        data[o+0]='2'
-        data[o+1]='0'
-        data[o+2]='0'
-        data[o+3]='P'
+    def poke(addr,x): data[addr-0x8000]=x
+    def pokestr(addr,s):
+        for i in range(len(s)): data[addr+i-0x8000]=ord(s[i])
 
+    # Adjust version number.
+    pokestr(0x8016,'200A')
+    pokestr(0xae74,'200A')
+    
     # Reset all drive mappings on startup.
-    data[0x4e]=0x7e
-    data[0x4f]=0xab
+    poke(0x804e,0x7e)
+    poke(0x804f,0xab)
+
+    # Make *CAT look less of a mess.
+    pokestr(0x8fbb,'Directory :'+chr(0xea))
+    pokestr(0x8eb0,'Drive '+chr(0xea))
+    poke(0x8f3f,6)
+    pokestr(0x8ef8,'('+chr(0xea))
+
+    # Fix up *STAT, which now looks a mess.
+    poke(0x9065,0x0a)
 
     # Create output data.
     for i in range(len(data)):

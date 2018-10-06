@@ -1,5 +1,4 @@
-Challenger ROM disassembly
-==========================
+# Challenger ROM disassembly
 
 The Opus Challenger 3-in-1 was a combined disc interface, disc drive
 and RAM disc for the BBC Micro.
@@ -8,27 +7,57 @@ Pics and stuff: http://chrisacorns.computinghistory.org.uk/8bit_Upgrades/Opus_Ch
 
 Some tech info: http://modelb.bbcmicro.com/tech-challenger.html
 
-Folders
-=======
+Stardot thread about the much rarer Challenger 2.00, with Master
+128-only ADFS support:
+https://stardot.org.uk/forums/viewtopic.php?f=32&t=11795&hilit=challenger+adfs&start=30
 
-`200` - disassembly of Challenger 2.00 ROM
+# Repo
 
-`101` - quick disassembly of the Challenger 1.01 ROM. Not sure how
-far I'm going to go with this. For now it's for comparison to the 2.00
-ROM only
+## `200`
 
-`originals` - original ROMs, random Slogger advert
+Disassembly of Challenger 2.00 ROM. The ROM is 32K, so it's in two
+parts - see `CH200.asm` and `CHADFS.asm`
 
-`tools` - tools for use on PC
+## `101`
 
-`beeb` - [BeebLink](https://github.com/tom-seddon/beeblink) volume
-holding some test programs
+Quick disassembly of the Challenger 1.01 ROM - see `CH101.asm`.
 
-Building
-========
+Not sure how far I'm going to go with this. For now it's for
+comparison to the 2.00 ROM only.
+
+## `originals`
+
+Original ROMs, random Slogger advert pic, and anything else I find.
+
+## `tools`
+
+Tools for use on PC. So far, just the ROM patcher that makes the BBC B
+version of Challenger 2.00.
+
+## `beeb`
+
+[BeebLink](https://github.com/tom-seddon/beeblink) volume holding some
+test programs and the patched 2.00 ROM for use with BBC B.
+
+# Patched 2.00 ROM info
+
+The original Challenger 2.00 ROM sort-of works on its own in a BBC B,
+but doesn't initialise properly without the ADFS ROM, effectively
+making it Master-only. The patched version fixes this. Full list of
+changes:
+
+* initialise DFS properly on reset
+* tidy up wonky `*CAT` output
+* advertises itself as version `200A`
+
+See `beeb/chaldis/1/R.PCH200`.
+
+**Use at your own risk**!
+
+# Building
 
 The build outputs are in the repo already, so you only need to do this
-if you're going to modify something.
+if you're going to modify something...
 
 Prerequisites:
 
@@ -38,8 +67,9 @@ Prerequisites:
 
 The build process does the following:
 
-* run da65 to regenerate Challenger 1.01 disassembly (outputs `./101/CH101.asm`)
-* run da65 to regenerate Challenger 2.00 disassembly (outputs `./200/CH200.asm` and `./200/CHADFS.asm`)
-* run Python tool to generate patched Challenger 2.00 ROM for use on BBC B (outputs `./beeb/chaldis/1/R.CH200P`)
+* run da65 to generate initial Challenger 1.01 disassembly (outputs `./101/CH101.asm`)
+* run da65 to generate initial Challenger 2.00 disassembly (outputs `./200/CH200.asm` and `./200/CHADFS.asm`)
+* run `./tools/patch_ch200.py` to generate patched Challenger 2.00 ROM for use on BBC B (outputs `./beeb/chaldis/1/R.CH200P`)
 
 Type `make` to run it.
+

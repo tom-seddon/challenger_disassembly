@@ -89,7 +89,7 @@ print_dot_without_spool=$a94f
 print_space_without_spool=$a818
 print_2_spaces_without_spool=$a815
 print_N_spaces_without_spool=$8add ; Y = number of spaces to print
-print_disc_title=$8ed7
+print_disc_title_and_cycle_number=$8ed7
 write_command=$bcfa
 write_sector=$bcfe
 write_data=$bd02

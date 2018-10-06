@@ -15,4 +15,4 @@ all:
 ch200_bbc_b: OUT:=./beeb/chaldis/1
 ch200_bbc_b:
 	mkdir -p $(OUT)
-	python ./tools/patch_ch200.py -o '$(OUT)/R.CH200P' --inf ./200/CH200.rom
+	python ./tools/patch_ch200.py -o '$(OUT)/R.PCH200' --inf ./200/CH200.rom
