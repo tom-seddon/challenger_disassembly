@@ -31,7 +31,7 @@ def main():
 
             if data[offset]==0: offset+=1
             range(start,offset-1,'texttable','auto call to a933')
-        elif jsr(0xa90d,0xa8f2,0xa905):
+        elif jsr(0xa8fc,0xa90d,0xa8f2,0xa905):
             # 0-terminated
             offset+=3
             start=offset
@@ -43,6 +43,17 @@ def main():
                 offset+=1
 
             range(start,offset-1,'texttable','auto call to a90d')
+        elif jsr(0xa977):
+            # 255-terminated
+            offset+=3
+            start=offset
+            while offset<len(data):
+                if data[offset]==255:
+                    offset+=1
+                    break
+                offset+=1
+
+            range(start,offset-1,'texttable','')
         else: offset+=1
 
     # Sort out command table

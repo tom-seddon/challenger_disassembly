@@ -1,5 +1,5 @@
 ; da65 V2.17 - Git df3c43be
-; Created:    2018-10-06 16:36:48
+; Created:    2018-10-06 17:47:43
 ; Input file: CH101
 ; Page:       1
 
@@ -21,38 +21,13 @@ L0D11           := $0D11
 L0D2C           := $0D2C
 L0D40           := $0D40
 L0D46           := $0D46
-L2020           := $2020
-L203A           := $203A
-L2045           := $2045
-L2049           := $2049
-L204C           := $204C
-L2052           := $2052
 L2064           := $2064
-L20FF           := $20FF
-L2820           := $2820
-L2846           := $2846
-L2F52           := $2F52
-L3028           := $3028
-L3731           := $3731
-L3D31           := $3D31
 L3E65           := $3E65
 L414F           := $414F
-L4152           := $4152
-L4D55           := $4D55
 L6040           := $6040
 L613C           := $613C
-L6944           := $6944
-L6964           := $6964
-L6E61           := $6E61
-L6E65           := $6E65
-L6F63           := $6F63
-L6F74           := $6F74
 L7264           := $7264
-L7277           := $7277
 L7366           := $7366
-L7473           := $7473
-L7F20           := $7F20
-L7F7F           := $7F7F
 fdc_status_or_cmd:= $FCF8
 fdc_track       := $FCF9
 fdc_sector      := $FCFA
@@ -62,7 +37,6 @@ ram_paging_msb  := $FCFE
 ram_paging_lsb  := $FCFF
 LFDE0           := $FDE0
 LFDE6           := $FDE6
-LFF54           := $FF54
 gsinit          := $FFC2
 gsread          := $FFC5
 osfind          := $FFCE
@@ -131,7 +105,7 @@ L803C:  txa                                     ; 803C 8A       .
         ldx     #$03                            ; 8061 A2 03    ..
         jsr     LB040                           ; 8063 20 40 B0  @.
 L8066:  lda     #$FD                            ; 8066 A9 FD    ..
-        jsr     LAE3D                           ; 8068 20 3D AE  =.
+        jsr     osbyte_x00_yff                  ; 8068 20 3D AE  =.
         txa                                     ; 806B 8A       .
         beq     L8071                           ; 806C F0 03    ..
         jsr     L8258                           ; 806E 20 58 82  X.
@@ -323,7 +297,7 @@ L81C1:  rts                                     ; 81C1 60       `
 L81C2:  lda     $B3                             ; 81C2 A5 B3    ..
         pha                                     ; 81C4 48       H
         jsr     LAEA3                           ; 81C5 20 A3 AE  ..
-        jsr     L81E9                           ; 81C8 20 E9 81  ..
+        jsr     get_rom_status_byte             ; 81C8 20 E9 81  ..
         and     #$03                            ; 81CB 29 03    ).
         beq     L81E7                           ; 81CD F0 18    ..
         jsr     L827C                           ; 81CF 20 7C 82  |.
@@ -346,7 +320,8 @@ L81E7:  pla                                     ; 81E7 68       h
         rts                                     ; 81E8 60       `
 
 ; ----------------------------------------------------------------------------
-L81E9:  ldx     $F4                             ; 81E9 A6 F4    ..
+get_rom_status_byte:
+        ldx     $F4                             ; 81E9 A6 F4    ..
         lda     $0DF0,x                         ; 81EB BD F0 0D ...
         rts                                     ; 81EE 60       `
 
@@ -381,7 +356,7 @@ L821E:  lda     LAE44,x                         ; 821E BD 44 AE .D.
         inx                                     ; 8224 E8       .
         cpx     #$0E                            ; 8225 E0 0E    ..
         bne     L821E                           ; 8227 D0 F5    ..
-        jsr     LAE33                           ; 8229 20 33 AE  3.
+        jsr     osbyte_get_rom_pointer_table_address; 8229 20 33 AE 3.
         sty     $B1                             ; 822C 84 B1    ..
         stx     $B0                             ; 822E 86 B0    ..
         ldx     #$00                            ; 8230 A2 00    ..
@@ -403,7 +378,7 @@ L8234:  lda     LAE52,x                         ; 8234 BD 52 AE .R.
         ora     #$80                            ; 824E 09 80    ..
         sta     $FD00                           ; 8250 8D 00 FD ...
         ldx     #$0F                            ; 8253 A2 0F    ..
-        jmp     LAE37                           ; 8255 4C 37 AE L7.
+        jmp     osbyte_rom_service_request      ; 8255 4C 37 AE L7.
 
 ; ----------------------------------------------------------------------------
 L8258:  jsr     select_ram_page_001             ; 8258 20 28 BE  (.
@@ -423,7 +398,7 @@ L8258:  jsr     select_ram_page_001             ; 8258 20 28 BE  (.
 
 ; ----------------------------------------------------------------------------
 L827C:  jsr     select_ram_page_001             ; 827C 20 28 BE  (.
-        jsr     LAE2F                           ; 827F 20 2F AE  /.
+        jsr     osbyte_read_tube_presence       ; 827F 20 2F AE  /.
         txa                                     ; 8282 8A       .
         eor     #$FF                            ; 8283 49 FF    I.
         sta     $FDCD                           ; 8285 8D CD FD ...
@@ -436,7 +411,7 @@ L827C:  jsr     select_ram_page_001             ; 827C 20 28 BE  (.
         sty     $FDDF                           ; 8297 8C DF FD ...
         sty     $FDD9                           ; 829A 8C D9 FD ...
         sty     $FDDC                           ; 829D 8C DC FD ...
-        jsr     LAE3B                           ; 82A0 20 3B AE  ;.
+        jsr     osbyte_aff_x00_yff              ; 82A0 20 3B AE  ;.
         stx     $B4                             ; 82A3 86 B4    ..
         jmp     LB929                           ; 82A5 4C 29 B9 L).
 
@@ -1348,12 +1323,10 @@ L89EA:  cmp     #$2A                            ; 89EA C9 2A    .*
         cpx     #$07                            ; 89FA E0 07    ..
         bne     L89EA                           ; 89FC D0 EC    ..
 L89FE:  jsr     LA8FC                           ; 89FE 20 FC A8  ..
-        cpy     $6966                           ; 8A01 CC 66 69 .fi
-        jmp     (L6E65)                         ; 8A04 6C 65 6E len
-
+        .byte   $CC                             ; 8A01 CC       .
+        .byte   "filename"                      ; 8A02 66 69 6C 65 6E 61 6D 65filename
+        .byte   $00                             ; 8A0A 00       .
 ; ----------------------------------------------------------------------------
-        adc     ($6D,x)                         ; 8A07 61 6D    am
-        adc     $00                             ; 8A09 65 00    e.
 L8A0B:  jmp     LAA94                           ; 8A0B 4C 94 AA L..
 
 ; ----------------------------------------------------------------------------
@@ -1991,12 +1964,9 @@ L8F20:  jmp     L841A                           ; 8F20 4C 1A 84 L..
 
 ; ----------------------------------------------------------------------------
 L8F23:  jsr     LA977                           ; 8F23 20 77 A9  w.
-        .byte   $52                             ; 8F26 52       R
-        eor     ($4D,x)                         ; 8F27 41 4D    AM
-        jsr     L6944                           ; 8F29 20 44 69  Di
-        .byte   $73                             ; 8F2C 73       s
-        .byte   $6B                             ; 8F2D 6B       k
+        .byte   "RAM Disk"                      ; 8F26 52 41 4D 20 44 69 73 6BRAM Disk
         .byte   $FF                             ; 8F2E FF       .
+; ----------------------------------------------------------------------------
         jmp     L841A                           ; 8F2F 4C 1A 84 L..
 
 ; ----------------------------------------------------------------------------
@@ -2710,12 +2680,10 @@ L940F:  jsr     gsread                          ; 940F 20 C5 FF  ..
         beq     L940D                           ; 9416 F0 F5    ..
         jsr     LA8FC                           ; 9418 20 FC A8  ..
         .byte   $CF                             ; 941B CF       .
-        adc     ($74,x)                         ; 941C 61 74    at
-        .byte   $74                             ; 941E 74       t
-        .byte   $72                             ; 941F 72       r
-        adc     #$62                            ; 9420 69 62    ib
-        adc     $74,x                           ; 9422 75 74    ut
-        adc     $00                             ; 9424 65 00    e.
+        .byte   "attribute"                     ; 941C 61 74 74 72 69 62 75 74attribut
+                                                ; 9424 65       e
+        .byte   $00                             ; 9425 00       .
+; ----------------------------------------------------------------------------
 L9426:  jsr     L8993                           ; 9426 20 93 89  ..
         jsr     L8BCE                           ; 9429 20 CE 8B  ..
         bcc     L9431                           ; 942C 90 03    ..
@@ -3145,7 +3113,7 @@ L9759:  pla                                     ; 9759 68       h
 ; ----------------------------------------------------------------------------
 L975B:  pha                                     ; 975B 48       H
         lda     #$EA                            ; 975C A9 EA    ..
-        jsr     LAE3D                           ; 975E 20 3D AE  =.
+        jsr     osbyte_x00_yff                  ; 975E 20 3D AE  =.
         txa                                     ; 9761 8A       .
         bne     L9754                           ; 9762 D0 F0    ..
         pla                                     ; 9764 68       h
@@ -3232,11 +3200,10 @@ L97DC:  rts                                     ; 97DC 60       `
 ; ----------------------------------------------------------------------------
 L97F0:  jsr     LA8FC                           ; 97F0 20 FC A8  ..
         .byte   $CB                             ; 97F3 CB       .
-        .byte   $6F                             ; 97F4 6F       o
-        bvs     L986B                           ; 97F5 70 74    pt
-        adc     #$6F                            ; 97F7 69 6F    io
-        ror     LA200                           ; 97F9 6E 00 A2 n..
-        .byte   $FF                             ; 97FC FF       .
+        .byte   "option"                        ; 97F4 6F 70 74 69 6F 6Eoption
+        .byte   $00                             ; 97FA 00       .
+; ----------------------------------------------------------------------------
+        ldx     #$FF                            ; 97FB A2 FF    ..
         tya                                     ; 97FD 98       .
         beq     L9801                           ; 97FE F0 01    ..
         inx                                     ; 9800 E8       .
@@ -3311,8 +3278,7 @@ L985D:  .byte   $97                             ; 985D 97       .
         .byte   $EF                             ; 9866 EF       .
         .byte   $97                             ; 9867 97       .
         and     ($98,x)                         ; 9868 21 98    !.
-        .byte   $35                             ; 986A 35       5
-L986B:  tya                                     ; 986B 98       .
+        and     $98,x                           ; 986A 35 98    5.
         rti                                     ; 986C 40       @
 
 ; ----------------------------------------------------------------------------
@@ -3353,9 +3319,10 @@ L9884:  pla                                     ; 9884 68       h
         jsr     L8BCE                           ; 98AC 20 CE 8B  ..
         bcs     L98BD                           ; 98AF B0 0C    ..
 L98B1:  jsr     LA8FC                           ; 98B1 20 FC A8  ..
-        inc     L6F63,x                         ; 98B4 FE 63 6F .co
-        adc     $616D                           ; 98B7 6D 6D 61 mma
-        ror     a:$64                           ; 98BA 6E 64 00 nd.
+        .byte   $FE                             ; 98B4 FE       .
+        .byte   "command"                       ; 98B5 63 6F 6D 6D 61 6E 64command
+        .byte   $00                             ; 98BC 00       .
+; ----------------------------------------------------------------------------
 L98BD:  jsr     LA25A                           ; 98BD 20 5A A2  Z.
         clc                                     ; 98C0 18       .
         lda     $FDE2                           ; 98C1 AD E2 FD ...
@@ -4560,7 +4527,7 @@ LA1EB:  jsr     L8973                           ; A1EB 20 73 89  s.
         lda     LAE80,x                         ; A1F9 BD 80 AE ...
         pha                                     ; A1FC 48       H
         lda     LAE78,x                         ; A1FD BD 78 AE .x.
-LA200:  pha                                     ; A200 48       H
+        pha                                     ; A200 48       H
 LA201:  rts                                     ; A201 60       `
 
 ; ----------------------------------------------------------------------------
@@ -5524,7 +5491,7 @@ LA90D:  sta     $B3                             ; A90D 85 B3    ..
         tya                                     ; A918 98       .
         pha                                     ; A919 48       H
         ldy     #$00                            ; A91A A0 00    ..
-        jsr     LAA4B                           ; A91C 20 4B AA  K.
+        jsr     inc_AEw                         ; A91C 20 4B AA  K.
         lda     (L00AE),y                       ; A91F B1 AE    ..
         sta     $0101                           ; A921 8D 01 01 ...
         jsr     LA9A0                           ; A924 20 A0 A9  ..
@@ -5543,7 +5510,7 @@ LA933:  sta     $B3                             ; A933 85 B3    ..
         tya                                     ; A93E 98       .
         pha                                     ; A93F 48       H
         ldy     #$00                            ; A940 A0 00    ..
-LA942:  jsr     LAA4B                           ; A942 20 4B AA  K.
+LA942:  jsr     inc_AEw                         ; A942 20 4B AA  K.
         lda     (L00AE),y                       ; A945 B1 AE    ..
         bmi     LA951                           ; A947 30 08    0.
         beq     LA958                           ; A949 F0 0D    ..
@@ -5562,7 +5529,7 @@ LA958:  lda     #$00                            ; A958 A9 00    ..
         ldx     L0100                           ; A95A AE 00 01 ...
         sta     L0100,x                         ; A95D 9D 00 01 ...
         sta     L0100                           ; A960 8D 00 01 ...
-        jsr     L81E9                           ; A963 20 E9 81  ..
+        jsr     get_rom_status_byte             ; A963 20 E9 81  ..
         and     #$7F                            ; A966 29 7F    ).
         sta     $0DF0,x                         ; A968 9D F0 0D ...
         jsr     L97BB                           ; A96B 20 BB 97  ..
@@ -5578,7 +5545,7 @@ LA977:  pla                                     ; A977 68       h
         tya                                     ; A97D 98       .
         pha                                     ; A97E 48       H
         ldy     #$00                            ; A97F A0 00    ..
-LA981:  jsr     LAA4B                           ; A981 20 4B AA  K.
+LA981:  jsr     inc_AEw                         ; A981 20 4B AA  K.
         lda     (L00AE),y                       ; A984 B1 AE    ..
         cmp     #$FF                            ; A986 C9 FF    ..
         beq     LA990                           ; A988 F0 06    ..
@@ -5588,14 +5555,14 @@ LA981:  jsr     LAA4B                           ; A981 20 4B AA  K.
 ; ----------------------------------------------------------------------------
 LA990:  pla                                     ; A990 68       h
         tay                                     ; A991 A8       .
-LA992:  jsr     LAA4B                           ; A992 20 4B AA  K.
+LA992:  jsr     inc_AEw                         ; A992 20 4B AA  K.
         jmp     (L00AE)                         ; A995 6C AE 00 l..
 
 ; ----------------------------------------------------------------------------
 LA998:  sta     $0101                           ; A998 8D 01 01 ...
 LA99B:  lda     #$02                            ; A99B A9 02    ..
         sta     L0100                           ; A99D 8D 00 01 ...
-LA9A0:  jsr     L81E9                           ; A9A0 20 E9 81  ..
+LA9A0:  jsr     get_rom_status_byte             ; A9A0 20 E9 81  ..
         php                                     ; A9A3 08       .
         ora     #$80                            ; A9A4 09 80    ..
         sta     $0DF0,x                         ; A9A6 9D F0 0D ...
@@ -5608,18 +5575,18 @@ LA9AB:  lda     #$4E                            ; A9AB A9 4E    .N
 LA9AF:  lda     #$2E                            ; A9AF A9 2E    ..
 LA9B1:  jsr     push_registers_and_tuck_restoration_thunk; A9B1 20 AB A8 ..
         pha                                     ; A9B4 48       H
-        jsr     L81E9                           ; A9B5 20 E9 81  ..
+        jsr     get_rom_status_byte             ; A9B5 20 E9 81  ..
         bmi     LA9CD                           ; A9B8 30 13    0.
-        jsr     LAE27                           ; A9BA 20 27 AE  '.
+        jsr     osbyte_read_character_destination; A9BA 20 27 AE '.
         txa                                     ; A9BD 8A       .
         pha                                     ; A9BE 48       H
         ora     #$10                            ; A9BF 09 10    ..
-        jsr     LAE22                           ; A9C1 20 22 AE  ".
+        jsr     osbyte_select_output_stream_a   ; A9C1 20 22 AE  ".
         pla                                     ; A9C4 68       h
         tax                                     ; A9C5 AA       .
         pla                                     ; A9C6 68       h
         jsr     osasci                          ; A9C7 20 E3 FF  ..
-        jmp     LAE23                           ; A9CA 4C 23 AE L#.
+        jmp     osbyte_select_output_stream     ; A9CA 4C 23 AE L#.
 
 ; ----------------------------------------------------------------------------
 LA9CD:  pla                                     ; A9CD 68       h
@@ -5738,7 +5705,7 @@ LAA47:  sec                                     ; AA47 38       8
         rts                                     ; AA4A 60       `
 
 ; ----------------------------------------------------------------------------
-LAA4B:  inc     L00AE                           ; AA4B E6 AE    ..
+inc_AEw:inc     L00AE                           ; AA4B E6 AE    ..
         bne     LAA51                           ; AA4D D0 02    ..
         inc     $AF                             ; AA4F E6 AF    ..
 LAA51:  rts                                     ; AA51 60       `
@@ -5786,9 +5753,10 @@ LAA8B:  rts                                     ; AA8B 60       `
         jsr     LAA52                           ; AA8F 20 52 AA  R.
         beq     LAA8B                           ; AA92 F0 F7    ..
 LAA94:  jsr     LA8FC                           ; AA94 20 FC A8  ..
-        cmp     L7264                           ; AA97 CD 64 72 .dr
-        adc     #$76                            ; AA9A 69 76    iv
-        adc     $00                             ; AA9C 65 00    e.
+        .byte   $CD                             ; AA97 CD       .
+        .byte   "drive"                         ; AA98 64 72 69 76 65drive
+        .byte   $00                             ; AA9D 00       .
+; ----------------------------------------------------------------------------
 LAA9E:  jsr     gsread                          ; AA9E 20 C5 FF  ..
         bcs     LAAD1                           ; AAA1 B0 2E    ..
         cmp     #$3A                            ; AAA3 C9 3A    .:
@@ -5865,7 +5833,7 @@ LAB1A:  sec                                     ; AB1A 38       8
         jsr     LAB3B                           ; AB24 20 3B AB  ;.
         cmp     #$05                            ; AB27 C9 05    ..
         bne     LAB34                           ; AB29 D0 09    ..
-        jsr     L81E9                           ; AB2B 20 E9 81  ..
+        jsr     get_rom_status_byte             ; AB2B 20 E9 81  ..
         and     #$03                            ; AB2E 29 03    ).
         cmp     #$02                            ; AB30 C9 02    ..
         bne     LAB36                           ; AB32 D0 02    ..
@@ -6212,7 +6180,7 @@ LADDD:  lda     $FDDD                           ; ADDD AD DD FD ...
         and     #$7F                            ; ADE6 29 7F    ).
         tay                                     ; ADE8 A8       .
         ldx     #$0B                            ; ADE9 A2 0B    ..
-        jsr     LAE37                           ; ADEB 20 37 AE  7.
+        jsr     osbyte_rom_service_request      ; ADEB 20 37 AE  7.
 LADEE:  lda     #$00                            ; ADEE A9 00    ..
         sta     $FDDD                           ; ADF0 8D DD FD ...
         rts                                     ; ADF3 60       `
@@ -6222,7 +6190,7 @@ LADF4:  .byte   $2C                             ; ADF4 2C       ,
 LADF5:  cmp     $30FD,x                         ; ADF5 DD FD 30 ..0
         ora     $8FA9                           ; ADF8 0D A9 8F ...
         ldx     #$0C                            ; ADFB A2 0C    ..
-        jsr     LAE3F                           ; ADFD 20 3F AE  ?.
+        jsr     osbyte_yff                      ; ADFD 20 3F AE  ?.
         tya                                     ; AE00 98       .
         ora     #$80                            ; AE01 09 80    ..
         sta     $FDDD                           ; AE03 8D DD FD ...
@@ -6236,30 +6204,42 @@ LAE07:  jsr     LAB39                           ; AE07 20 39 AB  9.
 LAE0D:  jsr     push_registers_and_tuck_restoration_thunk; AE0D 20 AB A8 ..
         lda     #$0F                            ; AE10 A9 0F    ..
         ldx     #$01                            ; AE12 A2 01    ..
-        bne     LAE1E                           ; AE14 D0 08    ..
+        bne     osbyte_y00                      ; AE14 D0 08    ..
         lda     #$81                            ; AE16 A9 81    ..
-        bne     LAE1C                           ; AE18 D0 02    ..
+        bne     osbyte_x00_y00                  ; AE18 D0 02    ..
         lda     #$C7                            ; AE1A A9 C7    ..
-LAE1C:  ldx     #$00                            ; AE1C A2 00    ..
-LAE1E:  ldy     #$00                            ; AE1E A0 00    ..
-        beq     LAE41                           ; AE20 F0 1F    ..
-LAE22:  tax                                     ; AE22 AA       .
-LAE23:  lda     #$03                            ; AE23 A9 03    ..
-        bne     LAE41                           ; AE25 D0 1A    ..
-LAE27:  lda     #$EC                            ; AE27 A9 EC    ..
-        bne     LAE3D                           ; AE29 D0 12    ..
+osbyte_x00_y00:
+        ldx     #$00                            ; AE1C A2 00    ..
+osbyte_y00:
+        ldy     #$00                            ; AE1E A0 00    ..
+        beq     call_osbyte                     ; AE20 F0 1F    ..
+osbyte_select_output_stream_a:
+        tax                                     ; AE22 AA       .
+osbyte_select_output_stream:
+        lda     #$03                            ; AE23 A9 03    ..
+        bne     call_osbyte                     ; AE25 D0 1A    ..
+osbyte_read_character_destination:
+        lda     #$EC                            ; AE27 A9 EC    ..
+        bne     osbyte_x00_yff                  ; AE29 D0 12    ..
         lda     #$C7                            ; AE2B A9 C7    ..
-        bne     LAE3D                           ; AE2D D0 0E    ..
-LAE2F:  lda     #$EA                            ; AE2F A9 EA    ..
-        bne     LAE3D                           ; AE31 D0 0A    ..
-LAE33:  lda     #$A8                            ; AE33 A9 A8    ..
-        bne     LAE3D                           ; AE35 D0 06    ..
-LAE37:  lda     #$8F                            ; AE37 A9 8F    ..
-        bne     LAE41                           ; AE39 D0 06    ..
-LAE3B:  lda     #$FF                            ; AE3B A9 FF    ..
-LAE3D:  ldx     #$00                            ; AE3D A2 00    ..
-LAE3F:  ldy     #$FF                            ; AE3F A0 FF    ..
-LAE41:  jmp     osbyte                          ; AE41 4C F4 FF L..
+        bne     osbyte_x00_yff                  ; AE2D D0 0E    ..
+osbyte_read_tube_presence:
+        lda     #$EA                            ; AE2F A9 EA    ..
+        bne     osbyte_x00_yff                  ; AE31 D0 0A    ..
+osbyte_get_rom_pointer_table_address:
+        lda     #$A8                            ; AE33 A9 A8    ..
+        bne     osbyte_x00_yff                  ; AE35 D0 06    ..
+osbyte_rom_service_request:
+        lda     #$8F                            ; AE37 A9 8F    ..
+        bne     call_osbyte                     ; AE39 D0 06    ..
+osbyte_aff_x00_yff:
+        lda     #$FF                            ; AE3B A9 FF    ..
+osbyte_x00_yff:
+        ldx     #$00                            ; AE3D A2 00    ..
+osbyte_yff:
+        ldy     #$FF                            ; AE3F A0 FF    ..
+call_osbyte:
+        jmp     osbyte                          ; AE41 4C F4 FF L..
 
 ; ----------------------------------------------------------------------------
 LAE44:  .byte   $1B                             ; AE44 1B       .
@@ -6332,7 +6312,7 @@ LAEA3:  jsr     LA933                           ; AEA3 20 33 A9  3.
                                                 ; AEB6 31 2E 30 31 201.01 
 ; ----------------------------------------------------------------------------
         nop                                     ; AEBB EA       .
-        jsr     L81E9                           ; AEBC 20 E9 81  ..
+        jsr     get_rom_status_byte             ; AEBC 20 E9 81  ..
         and     #$03                            ; AEBF 29 03    ).
         ora     #$04                            ; AEC1 09 04    ..
         tax                                     ; AEC3 AA       .
@@ -6364,22 +6344,14 @@ LAEE9:  jsr     LA89E                           ; AEE9 20 9E A8  ..
         jsr     LB2FD                           ; AEF7 20 FD B2  ..
 LAEFA:  jsr     LB330                           ; AEFA 20 30 B3  0.
 LAEFD:  jsr     LA977                           ; AEFD 20 77 A9  w.
-        .byte   $1F                             ; AF00 1F       .
-        brk                                     ; AF01 00       .
-        .byte   $13                             ; AF02 13       .
-        .byte   $83                             ; AF03 83       .
-        .byte   $44                             ; AF04 44       D
-        .byte   $72                             ; AF05 72       r
-        adc     #$76                            ; AF06 69 76    iv
-        adc     $20                             ; AF08 65 20    e 
-        ror     $6D75                           ; AF0A 6E 75 6D num
-        .byte   $62                             ; AF0D 62       b
-        adc     $72                             ; AF0E 65 72    er
-        jsr     L3028                           ; AF10 20 28 30  (0
-        and     $2937                           ; AF13 2D 37 29 -7)
-        jsr     L20FF                           ; AF16 20 FF 20  . 
-        .byte   $22                             ; AF19 22       "
-        ldx     $38,y                           ; AF1A B6 38    .8
+        .byte   $1F,$00,$13,$83                 ; AF00 1F 00 13 83....
+        .byte   "Drive number (0-7) "           ; AF04 44 72 69 76 65 20 6E 75Drive nu
+                                                ; AF0C 6D 62 65 72 20 28 30 2Dmber (0-
+                                                ; AF14 37 29 20 7) 
+        .byte   $FF                             ; AF17 FF       .
+; ----------------------------------------------------------------------------
+        jsr     LB622                           ; AF18 20 22 B6  ".
+        sec                                     ; AF1B 38       8
         sbc     #$30                            ; AF1C E9 30    .0
         bcc     LAEFD                           ; AF1E 90 DD    ..
         cmp     #$08                            ; AF20 C9 08    ..
@@ -6391,24 +6363,12 @@ LAF2B:  ldx     #$F4                            ; AF2B A2 F4    ..
         ldy     #$AE                            ; AF2D A0 AE    ..
         jsr     LB061                           ; AF2F 20 61 B0  a.
         jsr     LA977                           ; AF32 20 77 A9  w.
-        .byte   $1F                             ; AF35 1F       .
-        brk                                     ; AF36 00       .
-        .byte   $14                             ; AF37 14       .
-        .byte   $83                             ; AF38 83       .
-        bmi     LAF78                           ; AF39 30 3D    0=
-        .byte   $34                             ; AF3B 34       4
-        bmi     LAF6A                           ; AF3C 30 2C    0,
-        jsr     L3D31                           ; AF3E 20 31 3D  1=
-        sec                                     ; AF41 38       8
-        bmi     LAF64                           ; AF42 30 20    0 
-        .byte   $74                             ; AF44 74       t
-        .byte   $72                             ; AF45 72       r
-        adc     ($63,x)                         ; AF46 61 63    ac
-        .byte   $6B                             ; AF48 6B       k
-        .byte   $73                             ; AF49 73       s
-        jsr     L203A                           ; AF4A 20 3A 20  : 
-        jsr     L7F7F                           ; AF4D 20 7F 7F  ..
-        .byte   $FF                             ; AF50 FF       .
+        .byte   $1F,$00,$14,$83                 ; AF35 1F 00 14 83....
+        .byte   "0=40, 1=80 tracks :  "         ; AF39 30 3D 34 30 2C 20 31 3D0=40, 1=
+                                                ; AF41 38 30 20 74 72 61 63 6B80 track
+                                                ; AF49 73 20 3A 20 20s :  
+        .byte   $7F,$7F,$FF                     ; AF4E 7F 7F FF ...
+; ----------------------------------------------------------------------------
         jsr     LB7B2                           ; AF51 20 B2 B7  ..
         bne     LAF59                           ; AF54 D0 03    ..
         jmp     LAFFF                           ; AF56 4C FF AF L..
@@ -6419,37 +6379,28 @@ LAF59:  jsr     LB622                           ; AF59 20 22 B6  ".
         cmp     #$30                            ; AF5E C9 30    .0
         beq     LAF68                           ; AF60 F0 06    ..
         ldx     #$50                            ; AF62 A2 50    .P
-LAF64:  cmp     #$31                            ; AF64 C9 31    .1
+        cmp     #$31                            ; AF64 C9 31    .1
         bne     LAF2B                           ; AF66 D0 C3    ..
 LAF68:  stx     L00C0                           ; AF68 86 C0    ..
-LAF6A:  ldx     #$50                            ; AF6A A2 50    .P
+        ldx     #$50                            ; AF6A A2 50    .P
         lda     $FDEA                           ; AF6C AD EA FD ...
         bpl     LAF76                           ; AF6F 10 05    ..
         and     #$80                            ; AF71 29 80    ).
         sta     $FDEA                           ; AF73 8D EA FD ...
-LAF76:  .byte   $2C                             ; AF76 2C       ,
-        nop                                     ; AF77 EA       .
-LAF78:  sbc     $0250,x                         ; AF78 FD 50 02 .P.
+LAF76:  bit     $FDEA                           ; AF76 2C EA FD ,..
+        bvc     LAF7D                           ; AF79 50 02    P.
         ldx     #$28                            ; AF7B A2 28    .(
-        cpx     L00C0                           ; AF7D E4 C0    ..
+LAF7D:  cpx     L00C0                           ; AF7D E4 C0    ..
         bcs     LAF86                           ; AF7F B0 05    ..
         jsr     LB7A2                           ; AF81 20 A2 B7  ..
         bne     LAF2B                           ; AF84 D0 A5    ..
 LAF86:  jsr     LB330                           ; AF86 20 30 B3  0.
 LAF89:  jsr     LA977                           ; AF89 20 77 A9  w.
-        .byte   $1F                             ; AF8C 1F       .
-        brk                                     ; AF8D 00       .
-        ora     $83,x                           ; AF8E 15 83    ..
-        .byte   $44                             ; AF90 44       D
-        adc     $6E                             ; AF91 65 6E    en
-        .byte   $73                             ; AF93 73       s
-        adc     #$74                            ; AF94 69 74    it
-        adc     L2820,y                         ; AF96 79 20 28 y (
-        .byte   $53                             ; AF99 53       S
-        .byte   $2F                             ; AF9A 2F       /
-        .byte   $44                             ; AF9B 44       D
-        and     #$20                            ; AF9C 29 20    ) 
+        .byte   $1F,$00,$15,$83                 ; AF8C 1F 00 15 83....
+        .byte   "Density (S/D) "                ; AF90 44 65 6E 73 69 74 79 20Density 
+                                                ; AF98 28 53 2F 44 29 20(S/D) 
         .byte   $FF                             ; AF9E FF       .
+; ----------------------------------------------------------------------------
         jsr     LB622                           ; AF9F 20 22 B6  ".
         cmp     #$53                            ; AFA2 C9 53    .S
         beq     LAFDE                           ; AFA4 F0 38    .8
@@ -6495,18 +6446,14 @@ LAFF7:  jsr     LB075                           ; AFF7 20 75 B0  u.
 
 ; ----------------------------------------------------------------------------
 LAFFF:  jsr     LA977                           ; AFFF 20 77 A9  w.
-        .byte   $7F                             ; B002 7F       .
-        .byte   $7F                             ; B003 7F       .
-        bit     $3220                           ; B004 2C 20 32 , 2
-        and     $614D,x                         ; B007 3D 4D 61 =Ma
-        sei                                     ; B00A 78       x
-        jsr     L4152                           ; B00B 20 52 41  RA
-        eor     $6420                           ; B00E 4D 20 64 M d
-        adc     #$73                            ; B011 69 73    is
-        .byte   $6B                             ; B013 6B       k
-        jsr     L20FF                           ; B014 20 FF 20  . 
-        .byte   $22                             ; B017 22       "
-        ldx     $38,y                           ; B018 B6 38    .8
+        .byte   $7F,$7F                         ; B002 7F 7F    ..
+        .byte   ", 2=Max RAM disk "             ; B004 2C 20 32 3D 4D 61 78 20, 2=Max 
+                                                ; B00C 52 41 4D 20 64 69 73 6BRAM disk
+                                                ; B014 20        
+        .byte   $FF                             ; B015 FF       .
+; ----------------------------------------------------------------------------
+        jsr     LB622                           ; B016 20 22 B6  ".
+        sec                                     ; B019 38       8
         sbc     #$30                            ; B01A E9 30    .0
         bcc     LB03A                           ; B01C 90 1C    ..
         cmp     #$03                            ; B01E C9 03    ..
@@ -6562,24 +6509,14 @@ LB068:  ldx     $B8                             ; B068 A6 B8    ..
 LB075:  .byte   $20                             ; B075 20        
         .byte   $77                             ; B076 77       w
 LB077:  lda     #$1F                            ; B077 A9 1F    ..
-        php                                     ; B079 08       .
-        bpl     LAFFF                           ; B07A 10 83    ..
-        lsr     $6F                             ; B07C 46 6F    Fo
-        .byte   $72                             ; B07E 72       r
-        adc     $7461                           ; B07F 6D 61 74 mat
-        jsr     L6F63                           ; B082 20 63 6F  co
-        adc     $6C70                           ; B085 6D 70 6C mpl
-        adc     $74                             ; B088 65 74    et
-        adc     $0D                             ; B08A 65 0D    e.
-        asl     a                               ; B08C 0A       .
-        .byte   $83                             ; B08D 83       .
-        .byte   $52                             ; B08E 52       R
-        adc     $70                             ; B08F 65 70    ep
-        adc     $61                             ; B091 65 61    ea
-        .byte   $74                             ; B093 74       t
-        .byte   $3F                             ; B094 3F       ?
-        jsr     L20FF                           ; B095 20 FF 20  . 
-        eor     $B6                             ; B098 45 B6    E.
+        .byte   $08,$10,$83                     ; B079 08 10 83 ...
+        .byte   "Format complete"               ; B07C 46 6F 72 6D 61 74 20 63Format c
+                                                ; B084 6F 6D 70 6C 65 74 65omplete
+        .byte   $0D,$0A,$83                     ; B08B 0D 0A 83 ...
+        .byte   "Repeat? "                      ; B08E 52 65 70 65 61 74 3F 20Repeat? 
+        .byte   $FF                             ; B096 FF       .
+; ----------------------------------------------------------------------------
+        jsr     LB645                           ; B097 20 45 B6  E.
         cmp     #$59                            ; B09A C9 59    .Y
         rts                                     ; B09C 60       `
 
@@ -6610,27 +6547,19 @@ verify_command:
         jsr     LB05D                           ; B0CE 20 5D B0  ].
         jsr     LB7BE                           ; B0D1 20 BE B7  ..
 LB0D4:  jsr     LA977                           ; B0D4 20 77 A9  w.
-        .byte   $83                             ; B0D7 83       .
-        sta     $2056                           ; B0D8 8D 56 20 .V 
-        eor     $20                             ; B0DB 45 20    E 
-        .byte   $52                             ; B0DD 52       R
-        jsr     L2049                           ; B0DE 20 49 20  I 
-        lsr     $20                             ; B0E1 46 20    F 
-        eor     L20FF,y                         ; B0E3 59 FF 20 Y. 
-        .byte   $C3                             ; B0E6 C3       .
-        .byte   $B7                             ; B0E7 B7       .
+        .byte   $83,$8D                         ; B0D7 83 8D    ..
+        .byte   "V E R I F Y"                   ; B0D9 56 20 45 20 52 20 49 20V E R I 
+                                                ; B0E1 46 20 59 F Y
+        .byte   $FF                             ; B0E4 FF       .
+; ----------------------------------------------------------------------------
+        jsr     LB7C3                           ; B0E5 20 C3 B7  ..
         bne     LB0D4                           ; B0E8 D0 EA    ..
         jsr     LA977                           ; B0EA 20 77 A9  w.
-        .byte   $1F                             ; B0ED 1F       .
-        brk                                     ; B0EE 00       .
-        bpl     LB13A                           ; B0EF 10 49    .I
-        ror     $6573                           ; B0F1 6E 73 65 nse
-        .byte   $72                             ; B0F4 72       r
-        .byte   $74                             ; B0F5 74       t
-        jsr     L6964                           ; B0F6 20 64 69  di
-        .byte   $73                             ; B0F9 73       s
-        .byte   $6B                             ; B0FA 6B       k
+        .byte   $1F,$00,$10                     ; B0ED 1F 00 10 ...
+        .byte   "Insert disk"                   ; B0F0 49 6E 73 65 72 74 20 64Insert d
+                                                ; B0F8 69 73 6B isk
         .byte   $FF                             ; B0FB FF       .
+; ----------------------------------------------------------------------------
         jsr     LB76C                           ; B0FC 20 6C B7  l.
         ldx     #$CE                            ; B0FF A2 CE    ..
         ldy     #$B0                            ; B101 A0 B0    ..
@@ -6657,11 +6586,10 @@ LB0D4:  jsr     LA977                           ; B0D4 20 77 A9  w.
         jmp     LB144                           ; B136 4C 44 B1 LD.
 
 ; ----------------------------------------------------------------------------
-LB139:  .byte   $20                             ; B139 20        
-LB13A:  .byte   $37                             ; B13A 37       7
-        lda     $2D20                           ; B13B AD 20 2D . -
-        ldx     $04AD,y                         ; B13E BE AD 04 ...
-        sbc     $C085,x                         ; B141 FD 85 C0 ...
+LB139:  jsr     LAD37                           ; B139 20 37 AD  7.
+        jsr     select_ram_page_002             ; B13C 20 2D BE  -.
+        lda     $FD04                           ; B13F AD 04 FD ...
+        sta     L00C0                           ; B142 85 C0    ..
 LB144:  jsr     select_ram_page_001             ; B144 20 28 BE  (.
         lda     #$00                            ; B147 A9 00    ..
         sta     $BA                             ; B149 85 BA    ..
@@ -6717,42 +6645,26 @@ volgen_command:
         sta     $CF                             ; B1A6 85 CF    ..
         jsr     LB7BE                           ; B1A8 20 BE B7  ..
 LB1AB:  jsr     LA977                           ; B1AB 20 77 A9  w.
-        .byte   $83                             ; B1AE 83       .
-        sta     $2056                           ; B1AF 8D 56 20 .V 
-        .byte   $4F                             ; B1B2 4F       O
-        jsr     L204C                           ; B1B3 20 4C 20  L 
-        .byte   $47                             ; B1B6 47       G
-        jsr     L2045                           ; B1B7 20 45 20  E 
-        lsr     L20FF                           ; B1BA 4E FF 20 N. 
-        .byte   $C3                             ; B1BD C3       .
-        .byte   $B7                             ; B1BE B7       .
+        .byte   $83,$8D                         ; B1AE 83 8D    ..
+        .byte   "V O L G E N"                   ; B1B0 56 20 4F 20 4C 20 47 20V O L G 
+                                                ; B1B8 45 20 4E E N
+        .byte   $FF                             ; B1BB FF       .
+; ----------------------------------------------------------------------------
+        jsr     LB7C3                           ; B1BC 20 C3 B7  ..
         bne     LB1AB                           ; B1BF D0 EA    ..
         jsr     LA977                           ; B1C1 20 77 A9  w.
-        .byte   $1F                             ; B1C4 1F       .
-        brk                                     ; B1C5 00       .
-        .byte   $04                             ; B1C6 04       .
-        ora     $5683                           ; B1C7 0D 83 56 ..V
-        .byte   $6F                             ; B1CA 6F       o
-        jmp     (L2020)                         ; B1CB 6C 20 20 l  
-
-; ----------------------------------------------------------------------------
-        .byte   $53                             ; B1CE 53       S
-        adc     #$7A                            ; B1CF 69 7A    iz
-        adc     $20                             ; B1D1 65 20    e 
-        jsr     L2820                           ; B1D3 20 20 28   (
-        .byte   $4B                             ; B1D6 4B       K
-        and     #$20                            ; B1D7 29 20    ) 
+        .byte   $1F,$00,$04,$0D,$83             ; B1C4 1F 00 04 0D 83.....
+        .byte   "Vol  Size   (K) "              ; B1C9 56 6F 6C 20 20 53 69 7AVol  Siz
+                                                ; B1D1 65 20 20 20 28 4B 29 20e   (K) 
         .byte   $FF                             ; B1D9 FF       .
+; ----------------------------------------------------------------------------
         lda     $CF                             ; B1DA A5 CF    ..
         jsr     L8E4D                           ; B1DC 20 4D 8E  M.
         jsr     LA977                           ; B1DF 20 77 A9  w.
-        .byte   $1F                             ; B1E2 1F       .
-        brk                                     ; B1E3 00       .
-        .byte   $0F                             ; B1E4 0F       .
-        .byte   $83                             ; B1E5 83       .
-        lsr     $72                             ; B1E6 46 72    Fr
-        adc     $65                             ; B1E8 65 65    ee
+        .byte   $1F,$00,$0F,$83                 ; B1E2 1F 00 0F 83....
+        .byte   "Free"                          ; B1E6 46 72 65 65Free
         .byte   $FF                             ; B1EA FF       .
+; ----------------------------------------------------------------------------
         jsr     LB529                           ; B1EB 20 29 B5  ).
         lda     #$07                            ; B1EE A9 07    ..
         sta     $C1                             ; B1F0 85 C1    ..
@@ -6770,29 +6682,13 @@ LB1FC:  jsr     LB5C4                           ; B1FC 20 C4 B5  ..
 ; ----------------------------------------------------------------------------
 LB20C:  jsr     LB7A2                           ; B20C 20 A2 B7  ..
 LB20F:  jsr     LA977                           ; B20F 20 77 A9  w.
-        .byte   $1F                             ; B212 1F       .
-        brk                                     ; B213 00       .
-        .byte   $17                             ; B214 17       .
-        lsr     $4F,x                           ; B215 56 4F    VO
-        jmp     L4D55                           ; B217 4C 55 4D LUM
-
+        .byte   $1F,$00,$17                     ; B212 1F 00 17 ...
+        .byte   "VOLUME :      (W to configure)"; B215 56 4F 4C 55 4D 45 20 3AVOLUME :
+                                                ; B21D 20 20 20 20 20 20 28 57      (W
+                                                ; B225 20 74 6F 20 63 6F 6E 66 to conf
+                                                ; B22D 69 67 75 72 65 29igure)
+        .byte   $1F,$08,$17,$FF                 ; B233 1F 08 17 FF....
 ; ----------------------------------------------------------------------------
-        eor     $20                             ; B21A 45 20    E 
-        .byte   $3A                             ; B21C 3A       :
-        jsr     L2020                           ; B21D 20 20 20    
-        jsr     L2020                           ; B220 20 20 20    
-        plp                                     ; B223 28       (
-        .byte   $57                             ; B224 57       W
-        jsr     L6F74                           ; B225 20 74 6F  to
-        jsr     L6F63                           ; B228 20 63 6F  co
-        ror     $6966                           ; B22B 6E 66 69 nfi
-        .byte   $67                             ; B22E 67       g
-        adc     $72,x                           ; B22F 75 72    ur
-        adc     L0029                           ; B231 65 29    e)
-        .byte   $1F                             ; B233 1F       .
-        php                                     ; B234 08       .
-        .byte   $17                             ; B235 17       .
-        .byte   $FF                             ; B236 FF       .
         jsr     LB645                           ; B237 20 45 B6  E.
         cmp     #$57                            ; B23A C9 57    .W
         bne     LB241                           ; B23C D0 03    ..
@@ -6889,12 +6785,11 @@ LB2ED:  lda     $C1                             ; B2ED A5 C1    ..
 ; ----------------------------------------------------------------------------
 LB2FD:  jsr     LB7BE                           ; B2FD 20 BE B7  ..
 LB300:  jsr     LA977                           ; B300 20 77 A9  w.
-        .byte   $83                             ; B303 83       .
-        sta     $2046                           ; B304 8D 46 20 .F 
-        .byte   $4F                             ; B307 4F       O
-        jsr     L2052                           ; B308 20 52 20  R 
-        eor     $4120                           ; B30B 4D 20 41 M A
-        jsr     LFF54                           ; B30E 20 54 FF  T.
+        .byte   $83,$8D                         ; B303 83 8D    ..
+        .byte   "F O R M A T"                   ; B305 46 20 4F 20 52 20 4D 20F O R M 
+                                                ; B30D 41 20 54 A T
+        .byte   $FF                             ; B310 FF       .
+; ----------------------------------------------------------------------------
         jsr     LB7C3                           ; B311 20 C3 B7  ..
         bne     LB300                           ; B314 D0 EA    ..
 LB316:  rts                                     ; B316 60       `
@@ -7383,48 +7278,28 @@ LB650:  jsr     select_ram_page_001             ; B650 20 28 BE  (.
 ; ----------------------------------------------------------------------------
 LB662:  jsr     LB6AD                           ; B662 20 AD B6  ..
         jsr     LA977                           ; B665 20 77 A9  w.
-        .byte   $1F                             ; B668 1F       .
-        ora     $17,x                           ; B669 15 17    ..
-        dey                                     ; B66B 88       .
-        .byte   $83                             ; B66C 83       .
-        eor     $52                             ; B66D 45 52    ER
-        .byte   $52                             ; B66F 52       R
-        .byte   $4F                             ; B670 4F       O
-        .byte   $52                             ; B671 52       R
+        .byte   $1F,$15,$17,$88,$83             ; B668 1F 15 17 88 83.....
+        .byte   "ERROR"                         ; B66D 45 52 52 4F 52ERROR
         .byte   $FF                             ; B672 FF       .
+; ----------------------------------------------------------------------------
         rts                                     ; B673 60       `
 
 ; ----------------------------------------------------------------------------
 LB674:  jsr     LA977                           ; B674 20 77 A9  w.
-        .byte   $1C                             ; B677 1C       .
-        brk                                     ; B678 00       .
-        ora     $0427                           ; B679 0D 27 04 .'.
-        .byte   $0C                             ; B67C 0C       .
-        .byte   $1C                             ; B67D 1C       .
-        brk                                     ; B67E 00       .
-        clc                                     ; B67F 18       .
-        .byte   $27                             ; B680 27       '
-        brk                                     ; B681 00       .
-        .byte   $FF                             ; B682 FF       .
+        .byte   $1C,$00,$0D                     ; B677 1C 00 0D ...
+        .byte   "'"                             ; B67A 27       '
+        .byte   $04,$0C,$1C,$00,$18             ; B67B 04 0C 1C 00 18.....
+        .byte   "'"                             ; B680 27       '
+        .byte   $00,$FF                         ; B681 00 FF    ..
+; ----------------------------------------------------------------------------
         jsr     LB6AD                           ; B683 20 AD B6  ..
         jsr     LA977                           ; B686 20 77 A9  w.
-        .byte   $1F                             ; B689 1F       .
-        brk                                     ; B68A 00       .
-        bpl     LB6DD                           ; B68B 10 50    .P
-        .byte   $72                             ; B68D 72       r
-        adc     $73                             ; B68E 65 73    es
-        .byte   $73                             ; B690 73       s
-        jsr     L2846                           ; B691 20 46 28  F(
-        .byte   $72                             ; B694 72       r
-        adc     $74                             ; B695 65 74    et
-        and     #$20                            ; B697 29 20    ) 
-        .byte   $74                             ; B699 74       t
-        .byte   $6F                             ; B69A 6F       o
-        jsr     L7473                           ; B69B 20 73 74  st
-        adc     ($72,x)                         ; B69E 61 72    ar
-        .byte   $74                             ; B6A0 74       t
-        jsr     L7F20                           ; B6A1 20 20 7F   .
-        .byte   $FF                             ; B6A4 FF       .
+        .byte   $1F,$00,$10                     ; B689 1F 00 10 ...
+        .byte   "Press F(ret) to start  "       ; B68C 50 72 65 73 73 20 46 28Press F(
+                                                ; B694 72 65 74 29 20 74 6F 20ret) to 
+                                                ; B69C 73 74 61 72 74 20 20start  
+        .byte   $7F,$FF                         ; B6A3 7F FF    ..
+; ----------------------------------------------------------------------------
         jsr     LB622                           ; B6A5 20 22 B6  ".
         cmp     #$46                            ; B6A8 C9 46    .F
         bne     LB674                           ; B6AA D0 C8    ..
@@ -7445,16 +7320,14 @@ LB6B9:  jsr     LB674                           ; B6B9 20 74 B6  t.
         jsr     LB948                           ; B6C4 20 48 B9  H.
         lda     #$00                            ; B6C7 A9 00    ..
         sta     $BA                             ; B6C9 85 BA    ..
-LB6CB:  lda     #$00                            ; B6CB A9 00    ..
+        lda     #$00                            ; B6CB A9 00    ..
         sta     $B9                             ; B6CD 85 B9    ..
         sta     $BB                             ; B6CF 85 BB    ..
         jsr     LBB59                           ; B6D1 20 59 BB  Y.
 LB6D4:  lda     #$03                            ; B6D4 A9 03    ..
         sta     $BF                             ; B6D6 85 BF    ..
 LB6D8:  jsr     LB33C                           ; B6D8 20 3C B3  <.
-        .byte   $20                             ; B6DB 20        
-        .byte   $17                             ; B6DC 17       .
-LB6DD:  .byte   $B7                             ; B6DD B7       .
+        jsr     LB717                           ; B6DB 20 17 B7  ..
         ldy     #$03                            ; B6DE A0 03    ..
         jsr     LB792                           ; B6E0 20 92 B7  ..
         lda     $B9                             ; B6E3 A5 B9    ..
@@ -7512,49 +7385,26 @@ LB729:  adc     #$0E                            ; B729 69 0E    i.
 LB737:  jsr     LAE07                           ; B737 20 07 AE  ..
         beq     LB76B                           ; B73A F0 2F    ./
         jsr     LA977                           ; B73C 20 77 A9  w.
-        .byte   $1F                             ; B73F 1F       .
-        brk                                     ; B740 00       .
-        bpl     LB6CB                           ; B741 10 88    ..
-        .byte   $83                             ; B743 83       .
-        .byte   $44                             ; B744 44       D
-        adc     #$73                            ; B745 69 73    is
-        .byte   $6B                             ; B747 6B       k
-        jsr     L2F52                           ; B748 20 52 2F  R/
-        .byte   $4F                             ; B74B 4F       O
-        rol     $2E2E                           ; B74C 2E 2E 2E ...
-        .byte   $72                             ; B74F 72       r
-        adc     $6D                             ; B750 65 6D    em
-        .byte   $6F                             ; B752 6F       o
-        ror     $65,x                           ; B753 76 65    ve
-        jsr     L7277                           ; B755 20 77 72  wr
-        adc     #$74                            ; B758 69 74    it
-        adc     $20                             ; B75A 65 20    e 
-        bvs     LB7D0                           ; B75C 70 72    pr
-        .byte   $6F                             ; B75E 6F       o
-        .byte   $74                             ; B75F 74       t
-        adc     $63                             ; B760 65 63    ec
-        .byte   $74                             ; B762 74       t
-        ora     $FF0A                           ; B763 0D 0A FF ...
+        .byte   $1F,$00,$10,$88,$83             ; B73F 1F 00 10 88 83.....
+        .byte   "Disk R/O...remove write protect"; B744 44 69 73 6B 20 52 2F 4FDisk R/O
+                                                ; B74C 2E 2E 2E 72 65 6D 6F 76...remov
+                                                ; B754 65 20 77 72 69 74 65 20e write 
+                                                ; B75C 70 72 6F 74 65 63 74protect
+        .byte   $0D,$0A,$FF                     ; B763 0D 0A FF ...
+; ----------------------------------------------------------------------------
         jsr     LB76C                           ; B766 20 6C B7  l.
         lda     #$FF                            ; B769 A9 FF    ..
 LB76B:  rts                                     ; B76B 60       `
 
 ; ----------------------------------------------------------------------------
 LB76C:  jsr     LA977                           ; B76C 20 77 A9  w.
-        .byte   $1F                             ; B76F 1F       .
-        .byte   $04                             ; B770 04       .
-        ora     ($50),y                         ; B771 11 50    .P
-        .byte   $72                             ; B773 72       r
-        adc     $73                             ; B774 65 73    es
-        .byte   $73                             ; B776 73       s
-        jsr     L6E61                           ; B777 20 61 6E  an
-        adc     $6B20,y                         ; B77A 79 20 6B y k
-        adc     $79                             ; B77D 65 79    ey
-        jsr     L6F74                           ; B77F 20 74 6F  to
-        jsr     L6F63                           ; B782 20 63 6F  co
-        ror     $6974                           ; B785 6E 74 69 nti
-        ror     $6575                           ; B788 6E 75 65 nue
+        .byte   $1F,$04,$11                     ; B76F 1F 04 11 ...
+        .byte   "Press any key to continue"     ; B772 50 72 65 73 73 20 61 6EPress an
+                                                ; B77A 79 20 6B 65 79 20 74 6Fy key to
+                                                ; B782 20 63 6F 6E 74 69 6E 75 continu
+                                                ; B78A 65       e
         .byte   $FF                             ; B78B FF       .
+; ----------------------------------------------------------------------------
         jsr     LB645                           ; B78C 20 45 B6  E.
         jmp     LB6AD                           ; B78F 4C AD B6 L..
 
@@ -7601,20 +7451,14 @@ LB7C3:  iny                                     ; B7C3 C8       .
 fdcstat_command:
         tsx                                     ; B7CC BA       .
         lda     #$00                            ; B7CD A9 00    ..
-        .byte   $9D                             ; B7CF 9D       .
-LB7D0:  ora     $01                             ; B7D0 05 01    ..
+        sta     $0105,x                         ; B7CF 9D 05 01 ...
         jsr     LA977                           ; B7D2 20 77 A9  w.
-        ora     $570A                           ; B7D5 0D 0A 57 ..W
-        .byte   $44                             ; B7D8 44       D
-        jsr     L3731                           ; B7D9 20 31 37  17
-        .byte   $37                             ; B7DC 37       7
-        bmi     LB7FF                           ; B7DD 30 20    0 
-        .byte   $73                             ; B7DF 73       s
-        .byte   $74                             ; B7E0 74       t
-        adc     ($74,x)                         ; B7E1 61 74    at
-        adc     $73,x                           ; B7E3 75 73    us
-        jsr     L203A                           ; B7E5 20 3A 20  : 
+        .byte   $0D,$0A                         ; B7D5 0D 0A    ..
+        .byte   "WD 1770 status : "             ; B7D7 57 44 20 31 37 37 30 20WD 1770 
+                                                ; B7DF 73 74 61 74 75 73 20 3Astatus :
+                                                ; B7E7 20        
         .byte   $FF                             ; B7E8 FF       .
+; ----------------------------------------------------------------------------
         lda     $FDF3                           ; B7E9 AD F3 FD ...
         jsr     LA9D8                           ; B7EC 20 D8 A9  ..
         jmp     L841A                           ; B7EF 4C 1A 84 L..
@@ -7624,9 +7468,7 @@ LB7D0:  ora     $01                             ; B7D0 05 01    ..
         lda     $01A2                           ; B7F4 AD A2 01 ...
         lda     $02A2                           ; B7F7 AD A2 02 ...
         lda     $03A2                           ; B7FA AD A2 03 ...
-        .byte   $AD                             ; B7FD AD       .
-        .byte   $A2                             ; B7FE A2       .
-LB7FF:  .byte   $04                             ; B7FF 04       .
+        lda     $04A2                           ; B7FD AD A2 04 ...
         stx     $FDE9                           ; B800 8E E9 FD ...
         lda     ($B0),y                         ; B803 B1 B0    ..
         sta     $BB                             ; B805 85 BB    ..
@@ -7819,7 +7661,7 @@ LB921:  .byte   $12                             ; B921 12       .
         clc                                     ; B927 18       .
         .byte   $19                             ; B928 19       .
 LB929:  jsr     push_registers_and_tuck_restoration_thunk; B929 20 AB A8 ..
-        jsr     LAE3B                           ; B92C 20 3B AE  ;.
+        jsr     osbyte_aff_x00_yff              ; B92C 20 3B AE  ;.
         txa                                     ; B92F 8A       .
         jsr     LA9F6                           ; B930 20 F6 A9  ..
 LB933:  sta     $FDF2                           ; B933 8D F2 FD ...
