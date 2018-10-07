@@ -12,7 +12,7 @@ range{start$900e;end$9032;type texttable;};
 # range{start$90b4;end$91a7;type bytetable;};
 range{start$834b;end$835a;type texttable;};
 # range{start$bd06;end$bd07;type code;};
-range{start$bd52;end$bd59;type bytetable;}; #see ba79
+range{start$bd52;end$bd5b;type bytetable;}; #see ba79
 range{start$bc42;end$bc8b;type bytetable;};
 range{start$bfbb;end$bfbf;type bytetable;};
 range{start$bfc0;end$bfc4;type bytetable;};
@@ -31,3 +31,5 @@ range{start$97f4;end$9807;type rtstable;};
 
 range{start$adb7;end$adbe;type bytetable;};
 range{start$b8ef;end$b8f6;type bytetable;};
+range{start$b015;end$b01c;type bytetable;};
+range{start$958a;end$958c;type texttable;};

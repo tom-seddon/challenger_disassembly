@@ -165,10 +165,39 @@ osword_7f_seek=$b7da
 osword_7f_read_drive_status=$b859
 osword_7f_command_1b=$b7ed
 osword_7f_command_23=$b83e
-fdc_control_table=$b8ef
+fdc_control_table=$b8ef ; +0 = $12 = drive 0 side 0 = *DRIVE 0; +1 = $14 = drive 1 side 0 = *DRIVE 1; +2 = $13 = drive 0 side 1 = *DRIVE 2; +3 = $15 = drive 1 side 1 = *DRIVE 3; +4 = $ff = invalid??; +5 = $ff = invalid??; +6 = $18 = ??; +7 = $19 = ??
 chadfs_request_01=$bfa8
 reset_adfs_drive_mappings=$ab81
 reset_dfs_drive_mappings=$ab6f
 chadfs_request_04=$be28
 reset_current_drive_mappings=$ab6a
 reset_all_drive_mappings=$ab7e
+
+claim_nmi_area=$ad88
+nmi_area_claimed=$ad9a
+
+release_nmi_area=$ad71
+nmi_area_released=$ad82
+
+do_177x_force_interrupt=$ba00
+do_177x_seek=$b9f3
+
+get_current_physical_drive=$aad9
+get_physical_drive=$aadb
+
+current_drive=$cf
+
+copy_enable_cat_data=$9657
+is_current_drive_ram_disk=$b74c ; Z set if RAM disk
+fdc_select_current_drive=$b8d2
+
+fdc_commands=$bd52 ; +0 = $90 = read multiple sectors; +1 = $b4 = write multiple sectors with 30ms delay; +2 = $90 = read multiple sectors; +3 = $b5 = write multiple sectors, deleted data, with 30ms delay; +4 = $90 = read multiple sectors
+
+copy_nmi_read_routine=$bafb
+nmi_read_routine=$bd5c
+
+copy_nmi_write_routine=$bb07
+nmi_write_routine=$bdac
+nmi_write_routine_same_page=$bdba
+
+nmi_opt9_value=$d2d

@@ -9,6 +9,7 @@ L00A8           := $00A8
 L00AA           := $00AA
 L00AE           := $00AE
 L00C0           := $00C0
+current_drive   := $00CF
 L0100           := $0100
 fscv            := $021E
 L0406           := $0406
@@ -16,6 +17,7 @@ L0810           := $0810
 L0D00           := $0D00
 L0D11           := $0D11
 L0D2C           := $0D2C
+nmi_opt9_value  := $0D2D
 L0D40           := $0D40
 L0D46           := $0D46
 fdc_status_or_cmd:= $FCF8
@@ -87,16 +89,16 @@ svc_handle_absolute_workspace_claim:
         lda     #$65                            ; 8048 A9 65    .e
         sta     $FD00                           ; 804A 8D 00 FD ...
         jsr     reset_current_drive_mappings    ; 804D 20 6A AB  j.
-        jsr     LBA00                           ; 8050 20 00 BA  ..
+        jsr     do_177x_force_interrupt         ; 8050 20 00 BA  ..
 L8053:  lda     #$E5                            ; 8053 A9 E5    ..
         cmp     $FDFD                           ; 8055 CD FD FD ...
         beq     L806D                           ; 8058 F0 13    ..
         sta     $FDFD                           ; 805A 8D FD FD ...
         lda     #$04                            ; 805D A9 04    ..
-        sta     $CF                             ; 805F 85 CF    ..
+        sta     current_drive                   ; 805F 85 CF    ..
         ldx     #$02                            ; 8061 A2 02    ..
         jsr     LAFF8                           ; 8063 20 F8 AF  ..
-        inc     $CF                             ; 8066 E6 CF    ..
+        inc     current_drive                   ; 8066 E6 CF    ..
         ldx     #$03                            ; 8068 A2 03    ..
         jsr     LAFF8                           ; 806A 20 F8 AF  ..
 L806D:  lda     #$FD                            ; 806D A9 FD    ..
@@ -216,7 +218,7 @@ svc_handle_unknown_osword:
         ldy     $EF                             ; 813A A4 EF    ..
         cpy     #$7F                            ; 813C C0 7F    ..
         bne     L81B8                           ; 813E D0 78    .x
-        jsr     LAD88                           ; 8140 20 88 AD  ..
+        jsr     claim_nmi_area                  ; 8140 20 88 AD  ..
         ldy     #$01                            ; 8143 A0 01    ..
         lda     ($B0),y                         ; 8145 B1 B0    ..
         sta     $A6                             ; 8147 85 A6    ..
@@ -235,7 +237,7 @@ svc_handle_unknown_osword:
         sta     $FDED                           ; 815D 8D ED FD ...
         pla                                     ; 8160 68       h
         and     #$07                            ; 8161 29 07    ).
-        sta     $CF                             ; 8163 85 CF    ..
+        sta     current_drive                   ; 8163 85 CF    ..
 L8165:  iny                                     ; 8165 C8       .
         ldx     #$02                            ; 8166 A2 02    ..
         jsr     L89C2                           ; 8168 20 C2 89  ..
@@ -283,7 +285,7 @@ L8186:  inx                                     ; 8186 E8       .
         sta     ($B0),y                         ; 81AB 91 B0    ..
         pha                                     ; 81AD 48       H
 L81AE:  pla                                     ; 81AE 68       h
-        jsr     LAD71                           ; 81AF 20 71 AD  q.
+        jsr     release_nmi_area                ; 81AF 20 71 AD  q.
         jsr     L96E6                           ; 81B2 20 E6 96  ..
         lda     #$00                            ; 81B5 A9 00    ..
         rts                                     ; 81B7 60       `
@@ -669,7 +671,7 @@ L847E:  jsr     push_registers_and_tuck_restoration_thunk; 847E 20 4C A8 L.
         ldx     $FDCB                           ; 8484 AE CB FD ...
         lda     #$80                            ; 8487 A9 80    ..
 L8489:  pha                                     ; 8489 48       H
-        stx     $CF                             ; 848A 86 CF    ..
+        stx     current_drive                   ; 848A 86 CF    ..
         pla                                     ; 848C 68       h
         bit     $A9                             ; 848D 24 A9    $.
         bmi     L8492                           ; 848F 30 01    0.
@@ -846,7 +848,7 @@ L85DC:  lda     #$D5                            ; 85DC A9 D5    ..
 ; ----------------------------------------------------------------------------
 L8600:  jsr     L8948                           ; 8600 20 48 89  H.
         jsr     L88CA                           ; 8603 20 CA 88  ..
-        jsr     LB74C                           ; 8606 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; 8606 20 4C B7  L.
         bne     L860E                           ; 8609 D0 03    ..
         pla                                     ; 860B 68       h
         pla                                     ; 860C 68       h
@@ -1771,9 +1773,9 @@ stat_command:
         jmp     L8DB3                           ; 8D71 4C B3 8D L..
 
 ; ----------------------------------------------------------------------------
-L8D74:  lda     $CF                             ; 8D74 A5 CF    ..
+L8D74:  lda     current_drive                   ; 8D74 A5 CF    ..
         and     #$0F                            ; 8D76 29 0F    ).
-        sta     $CF                             ; 8D78 85 CF    ..
+        sta     current_drive                   ; 8D78 85 CF    ..
         lda     #$80                            ; 8D7A A9 80    ..
         sta     $FDE9                           ; 8D7C 8D E9 FD ...
         jsr     LABB5                           ; 8D7F 20 B5 AB  ..
@@ -1795,9 +1797,9 @@ L8D8F:  jsr     select_ram_page_000             ; 8D8F 20 07 BE  ..
         pla                                     ; 8DA2 68       h
         tax                                     ; 8DA3 AA       .
 L8DA4:  clc                                     ; 8DA4 18       .
-        lda     $CF                             ; 8DA5 A5 CF    ..
+        lda     current_drive                   ; 8DA5 A5 CF    ..
         adc     #$10                            ; 8DA7 69 10    i.
-        sta     $CF                             ; 8DA9 85 CF    ..
+        sta     current_drive                   ; 8DA9 85 CF    ..
         inx                                     ; 8DAB E8       .
         cpx     #$08                            ; 8DAC E0 08    ..
         bne     L8D8F                           ; 8DAE D0 DF    ..
@@ -1976,7 +1978,7 @@ L8EEC:  jsr     print_char_without_spool        ; 8EEC 20 51 A9  Q.
 
 ; ----------------------------------------------------------------------------
 L8F0B:  jsr     select_ram_page_001             ; 8F0B 20 0C BE  ..
-        jsr     LB74C                           ; 8F0E 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; 8F0E 20 4C B7  L.
         beq     L8F79                           ; 8F11 F0 66    .f
         bit     $FDED                           ; 8F13 2C ED FD ,..
         bvs     L8F21                           ; 8F16 70 09    p.
@@ -2033,7 +2035,7 @@ L8F79:  jsr     print_string_255term            ; 8F79 20 17 A9  ..
 
 ; ----------------------------------------------------------------------------
 L8F88:  ldy     #$0D                            ; 8F88 A0 0D    ..
-        lda     $CF                             ; 8F8A A5 CF    ..
+        lda     current_drive                   ; 8F8A A5 CF    ..
         jsr     L8EAD                           ; 8F8C 20 AD 8E  ..
         jsr     print_N_spaces_without_spool    ; 8F8F 20 DD 8A  ..
         jsr     select_ram_page_003             ; 8F92 20 16 BE  ..
@@ -2113,7 +2115,7 @@ strings_data:
         .byte   $00                             ; 9032 00       .
 ; ----------------------------------------------------------------------------
 L9033:  ldy     #$03                            ; 9033 A0 03    ..
-        lda     $CF                             ; 9035 A5 CF    ..
+        lda     current_drive                   ; 9035 A5 CF    ..
         jsr     L8EAD                           ; 9037 20 AD 8E  ..
         jsr     print_N_spaces_without_spool    ; 903A 20 DD 8A  ..
         jsr     print_string_nterm              ; 903D 20 D3 A8  ..
@@ -2558,7 +2560,7 @@ L9300:  ldy     $FDC2                           ; 9300 AC C2 FD ...
 ; ----------------------------------------------------------------------------
 drive_command:
         jsr     LAA16                           ; 930A 20 16 AA  ..
-        lda     $CF                             ; 930D A5 CF    ..
+        lda     current_drive                   ; 930D A5 CF    ..
         sta     $FDC7                           ; 930F 8D C7 FD ...
         rts                                     ; 9312 60       `
 
@@ -2571,7 +2573,7 @@ lib_command:
         lda     $FDC6,x                         ; 9318 BD C6 FD ...
         sta     $CE                             ; 931B 85 CE    ..
         lda     $FDC7,x                         ; 931D BD C7 FD ...
-        sta     $CF                             ; 9320 85 CF    ..
+        sta     current_drive                   ; 9320 85 CF    ..
         txa                                     ; 9322 8A       .
         pha                                     ; 9323 48       H
         jsr     gsinit_with_carry_clear         ; 9324 20 F2 A9  ..
@@ -2581,7 +2583,7 @@ L932C:  pla                                     ; 932C 68       h
         tax                                     ; 932D AA       .
         lda     $CE                             ; 932E A5 CE    ..
         sta     $FDC6,x                         ; 9330 9D C6 FD ...
-        lda     $CF                             ; 9333 A5 CF    ..
+        lda     current_drive                   ; 9333 A5 CF    ..
         sta     $FDC7,x                         ; 9335 9D C7 FD ...
         rts                                     ; 9338 60       `
 
@@ -2889,8 +2891,8 @@ L957D:  lda     #$80                            ; 957D A9 80    ..
 L9587:  jmp     L9849                           ; 9587 4C 49 98 LI.
 
 ; ----------------------------------------------------------------------------
-L958A:  .byte   $43                             ; 958A 43       C
-        eor     ($54,x)                         ; 958B 41 54    AT
+L958A:  .byte   "CAT"                           ; 958A 43 41 54 CAT
+; ----------------------------------------------------------------------------
 L958D:  pha                                     ; 958D 48       H
         lda     #$00                            ; 958E A9 00    ..
         pha                                     ; 9590 48       H
@@ -2927,7 +2929,7 @@ L95C2:  sta     $FDB7                           ; 95C2 8D B7 FD ...
 rename_command:
         jsr     L8B32                           ; 95C6 20 32 8B  2.
         jsr     L92E6                           ; 95C9 20 E6 92  ..
-        jsr     LAAD9                           ; 95CC 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; 95CC 20 D9 AA  ..
         pha                                     ; 95CF 48       H
         tya                                     ; 95D0 98       .
         pha                                     ; 95D1 48       H
@@ -2942,7 +2944,7 @@ rename_command:
         jsr     L89F2                           ; 95E4 20 F2 89  ..
         pla                                     ; 95E7 68       h
         sta     $FDC0                           ; 95E8 8D C0 FD ...
-        jsr     LAAD9                           ; 95EB 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; 95EB 20 D9 AA  ..
         cmp     $FDC0                           ; 95EE CD C0 FD ...
         beq     L95F6                           ; 95F1 F0 03    ..
         jmp     L9849                           ; 95F3 4C 49 98 LI.
@@ -2969,11 +2971,11 @@ L960B:  jsr     select_ram_page_003             ; 960B 20 16 BE  ..
 
 ; ----------------------------------------------------------------------------
 L961F:  jsr     select_ram_page_001             ; 961F 20 0C BE  ..
-        jsr     LAAD9                           ; 9622 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; 9622 20 D9 AA  ..
         cmp     $FDDC                           ; 9625 CD DC FD ...
         bne     L962F                           ; 9628 D0 05    ..
         jsr     LBD06                           ; 962A 20 06 BD  ..
-        beq     L9657                           ; 962D F0 28    .(
+        beq     copy_enable_cat_data            ; 962D F0 28    .(
 L962F:  jsr     push_registers_and_tuck_restoration_thunk; 962F 20 4C A8 L.
 L9632:  jsr     L973A                           ; 9632 20 3A 97  :.
 L9635:  lda     #$00                            ; 9635 A9 00    ..
@@ -2984,14 +2986,15 @@ L9635:  lda     #$00                            ; 9635 A9 00    ..
         ora     #$80                            ; 9641 09 80    ..
         sta     $FDE9                           ; 9643 8D E9 FD ...
         jsr     LABB5                           ; 9646 20 B5 AB  ..
-        jsr     LAAD9                           ; 9649 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; 9649 20 D9 AA  ..
         sta     $FDDC                           ; 964C 8D DC FD ...
         jsr     L968B                           ; 964F 20 8B 96  ..
-        beq     L9657                           ; 9652 F0 03    ..
+        beq     copy_enable_cat_data            ; 9652 F0 03    ..
         jmp     LBCAF                           ; 9654 4C AF BC L..
 
 ; ----------------------------------------------------------------------------
-L9657:  jsr     select_ram_page_001             ; 9657 20 0C BE  ..
+copy_enable_cat_data:
+        jsr     select_ram_page_001             ; 9657 20 0C BE  ..
         bit     $FDF4                           ; 965A 2C F4 FD ,..
         bpl     L9679                           ; 965D 10 1A    ..
         jsr     select_ram_page_002             ; 965F 20 11 BE  ..
@@ -3006,7 +3009,7 @@ L9670:  lda     $FD00,x                         ; 9670 BD 00 FD ...
         inx                                     ; 9676 E8       .
         bne     L9670                           ; 9677 D0 F7    ..
 L9679:  jsr     select_ram_page_001             ; 9679 20 0C BE  ..
-        jmp     LAD71                           ; 967C 4C 71 AD Lq.
+        jmp     release_nmi_area                ; 967C 4C 71 AD Lq.
 
 ; ----------------------------------------------------------------------------
         lda     #$80                            ; 967F A9 80    ..
@@ -3110,7 +3113,7 @@ L9721:  lda     #$81                            ; 9721 A9 81    ..
         .byte   $AE                             ; 9723 AE       .
 L9724:  lda     #$80                            ; 9724 A9 80    ..
         sta     $FDE9                           ; 9726 8D E9 FD ...
-        jsr     LAD88                           ; 9729 20 88 AD  ..
+        jsr     claim_nmi_area                  ; 9729 20 88 AD  ..
         jsr     L8AED                           ; 972C 20 ED 8A  ..
         jsr     LACE4                           ; 972F 20 E4 AC  ..
         jmp     L96E6                           ; 9732 4C E6 96 L..
@@ -3127,7 +3130,7 @@ L9743:  jsr     LADBC                           ; 9743 20 BC AD  ..
         lda     #$01                            ; 9748 A9 01    ..
 L974A:  jsr     select_ram_page_001             ; 974A 20 0C BE  ..
         sta     $FDE9                           ; 974D 8D E9 FD ...
-        jsr     LAD88                           ; 9750 20 88 AD  ..
+        jsr     claim_nmi_area                  ; 9750 20 88 AD  ..
 L9753:  jsr     select_ram_page_001             ; 9753 20 0C BE  ..
         lda     #$FF                            ; 9756 A9 FF    ..
         sta     $FDDC                           ; 9758 8D DC FD ...
@@ -3283,7 +3286,7 @@ osfsc_run:
         lda     $FDC8                           ; 9837 AD C8 FD ...
         sta     $CE                             ; 983A 85 CE    ..
         lda     $FDC9                           ; 983C AD C9 FD ...
-        sta     $CF                             ; 983F 85 CF    ..
+        sta     current_drive                   ; 983F 85 CF    ..
         jsr     L89E5                           ; 9841 20 E5 89  ..
         jsr     L8C2E                           ; 9844 20 2E 8C  ..
         bcs     L9855                           ; 9847 B0 0C    ..
@@ -3365,9 +3368,9 @@ L98CC:  jsr     select_ram_page_000             ; 98CC 20 07 BE  ..
         pla                                     ; 98E2 68       h
         tax                                     ; 98E3 AA       .
 L98E4:  clc                                     ; 98E4 18       .
-        lda     $CF                             ; 98E5 A5 CF    ..
+        lda     current_drive                   ; 98E5 A5 CF    ..
         adc     #$10                            ; 98E7 69 10    i.
-        sta     $CF                             ; 98E9 85 CF    ..
+        sta     current_drive                   ; 98E9 85 CF    ..
         inx                                     ; 98EB E8       .
         cpx     #$08                            ; 98EC E0 08    ..
         bne     L98CC                           ; 98EE D0 DC    ..
@@ -3606,7 +3609,7 @@ L9AC3:  lda     $FCEA,y                         ; 9AC3 B9 EA FC ...
         lda     $FCEE,y                         ; 9ACF B9 EE FC ...
         jsr     extract_00xx0000                ; 9AD2 20 96 A9  ..
         sta     $FCF7,y                         ; 9AD5 99 F7 FC ...
-L9AD8:  lda     $CF                             ; 9AD8 A5 CF    ..
+L9AD8:  lda     current_drive                   ; 9AD8 A5 CF    ..
         sta     $FD00,y                         ; 9ADA 99 00 FD ...
         jsr     L853F                           ; 9ADD 20 3F 85  ?.
         sta     $FCF4,y                         ; 9AE0 99 F4 FC ...
@@ -3659,9 +3662,9 @@ L9B32:  clc                                     ; 9B32 18       .
 
 ; ----------------------------------------------------------------------------
 L9B34:  lda     $FD00,x                         ; 9B34 BD 00 FD ...
-        jsr     LAADB                           ; 9B37 20 DB AA  ..
+        jsr     get_physical_drive              ; 9B37 20 DB AA  ..
         sta     $B3                             ; 9B3A 85 B3    ..
-        jsr     LAAD9                           ; 9B3C 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; 9B3C 20 D9 AA  ..
         eor     $B3                             ; 9B3F 45 B3    E.
         bne     L9B2A                           ; 9B41 D0 E7    ..
         lda     #$08                            ; 9B43 A9 08    ..
@@ -4279,9 +4282,9 @@ L9FF9:  asl     a                               ; 9FF9 0A       .
         lda     L9C91,x                         ; 9FFD BD 91 9C ...
         tay                                     ; A000 A8       .
         lda     $FD00,y                         ; A001 B9 00 FD ...
-        jsr     LAADB                           ; A004 20 DB AA  ..
+        jsr     get_physical_drive              ; A004 20 DB AA  ..
         sta     $C2                             ; A007 85 C2    ..
-        jsr     LAAD9                           ; A009 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; A009 20 D9 AA  ..
         cmp     $C2                             ; A00C C5 C2    ..
         bne     LA04C                           ; A00E D0 3C    .<
         lda     $FCEE,y                         ; A010 B9 EE FC ...
@@ -4966,7 +4969,7 @@ LA4F4:  lda     $FEE5                           ; A4F4 AD E5 FE ...
 
 ; ----------------------------------------------------------------------------
 LA4F8:  jsr     select_ram_page_001             ; A4F8 20 0C BE  ..
-        jsr     LB74C                           ; A4FB 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; A4FB 20 4C B7  L.
         beq     LA507                           ; A4FE F0 07    ..
         lda     #$00                            ; A500 A9 00    ..
         bit     $FDED                           ; A502 2C ED FD ,..
@@ -5230,10 +5233,10 @@ LA733:  clc                                     ; A733 18       .
 
 ; ----------------------------------------------------------------------------
 LA741:  lda     $FDCB                           ; A741 AD CB FD ...
-        jsr     LAADB                           ; A744 20 DB AA  ..
+        jsr     get_physical_drive              ; A744 20 DB AA  ..
         sta     $A9                             ; A747 85 A9    ..
         lda     $FDCA                           ; A749 AD CA FD ...
-        jsr     LAADB                           ; A74C 20 DB AA  ..
+        jsr     get_physical_drive              ; A74C 20 DB AA  ..
         cmp     $A9                             ; A74F C5 A9    ..
         bne     LA75A                           ; A751 D0 07    ..
         lda     #$FF                            ; A753 A9 FF    ..
@@ -5494,7 +5497,7 @@ LA8F8:  lda     #$00                            ; A8F8 A9 00    ..
         sta     $0DF0,x                         ; A908 9D F0 0D ...
         jsr     L9753                           ; A90B 20 53 97  S.
         jsr     L96F3                           ; A90E 20 F3 96  ..
-        jsr     LAD71                           ; A911 20 71 AD  q.
+        jsr     release_nmi_area                ; A911 20 71 AD  q.
         jmp     L0100                           ; A914 4C 00 01 L..
 
 ; ----------------------------------------------------------------------------
@@ -5691,7 +5694,7 @@ gsinit_with_carry_clear:
 
 ; ----------------------------------------------------------------------------
 LA9F6:  jsr     LAABA                           ; A9F6 20 BA AA  ..
-        sta     $CF                             ; A9F9 85 CF    ..
+        sta     current_drive                   ; A9F9 85 CF    ..
         rts                                     ; A9FB 60       `
 
 ; ----------------------------------------------------------------------------
@@ -5702,8 +5705,8 @@ LA9FC:  jsr     toupper                         ; A9FC 20 BB A9  ..
         cmp     #$08                            ; AA04 C9 08    ..
         bcs     LAA34                           ; AA06 B0 2C    .,
         jsr     asl_x4                          ; AA08 20 A4 A9  ..
-        ora     $CF                             ; AA0B 05 CF    ..
-        sta     $CF                             ; AA0D 85 CF    ..
+        ora     current_drive                   ; AA0B 05 CF    ..
+        sta     current_drive                   ; AA0D 85 CF    ..
         rts                                     ; AA0F 60       `
 
 ; ----------------------------------------------------------------------------
@@ -5720,7 +5723,7 @@ LAA1E:  jsr     select_ram_page_001             ; AA1E 20 0C BE  ..
         lda     $FDC6                           ; AA21 AD C6 FD ...
         sta     $CE                             ; AA24 85 CE    ..
 LAA26:  lda     $FDC7                           ; AA26 AD C7 FD ...
-        sta     $CF                             ; AA29 85 CF    ..
+        sta     current_drive                   ; AA29 85 CF    ..
 LAA2B:  rts                                     ; AA2B 60       `
 
 ; ----------------------------------------------------------------------------
@@ -5786,7 +5789,7 @@ LAAA4:  jsr     LA9FC                           ; AAA4 20 FC A9  ..
         inx                                     ; AAA7 E8       .
         php                                     ; AAA8 08       .
 LAAA9:  plp                                     ; AAA9 28       (
-        lda     $CF                             ; AAAA A5 CF    ..
+        lda     current_drive                   ; AAAA A5 CF    ..
         rts                                     ; AAAC 60       `
 
 ; ----------------------------------------------------------------------------
@@ -5805,7 +5808,7 @@ LAABA:  sec                                     ; AABA 38       8
         pha                                     ; AABF 48       H
         cmp     #$08                            ; AAC0 C9 08    ..
         bcs     LAAD6                           ; AAC2 B0 12    ..
-        jsr     LAADB                           ; AAC4 20 DB AA  ..
+        jsr     get_physical_drive              ; AAC4 20 DB AA  ..
         cmp     #$05                            ; AAC7 C9 05    ..
         bne     LAAD4                           ; AAC9 D0 09    ..
         jsr     get_rom_status_byte             ; AACB 20 19 82  ..
@@ -5819,8 +5822,10 @@ LAAD4:  pla                                     ; AAD4 68       h
 LAAD6:  jmp     LAA34                           ; AAD6 4C 34 AA L4.
 
 ; ----------------------------------------------------------------------------
-LAAD9:  lda     $CF                             ; AAD9 A5 CF    ..
-LAADB:  jsr     LA875                           ; AADB 20 75 A8  u.
+get_current_physical_drive:
+        lda     current_drive                   ; AAD9 A5 CF    ..
+get_physical_drive:
+        jsr     LA875                           ; AADB 20 75 A8  u.
         tax                                     ; AADE AA       .
         and     #$F0                            ; AADF 29 F0    ).
         pha                                     ; AAE1 48       H
@@ -5929,7 +5934,7 @@ LAB9A:  jsr     select_ram_page_001             ; AB9A 20 0C BE  ..
         and     #$7F                            ; ABA0 29 7F    ).
         sta     $CE                             ; ABA2 85 CE    ..
         lda     $FD00,y                         ; ABA4 B9 00 FD ...
-        sta     $CF                             ; ABA7 85 CF    ..
+        sta     current_drive                   ; ABA7 85 CF    ..
         lda     ram_paging_lsb,y                ; ABA9 B9 FF FC ...
         sta     $FDEC                           ; ABAC 8D EC FD ...
         lda     $FCF4,y                         ; ABAF B9 F4 FC ...
@@ -5937,11 +5942,11 @@ LAB9A:  jsr     select_ram_page_001             ; AB9A 20 0C BE  ..
 
 ; ----------------------------------------------------------------------------
 LABB5:  jsr     select_ram_page_001             ; ABB5 20 0C BE  ..
-        jsr     LAD88                           ; ABB8 20 88 AD  ..
+        jsr     claim_nmi_area                  ; ABB8 20 88 AD  ..
         lda     #$00                            ; ABBB A9 00    ..
         sta     $BA                             ; ABBD 85 BA    ..
         sta     $BB                             ; ABBF 85 BB    ..
-        jsr     LB74C                           ; ABC1 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; ABC1 20 4C B7  L.
         beq     LAC23                           ; ABC4 F0 5D    .]
         jsr     LB916                           ; ABC6 20 16 B9  ..
         lda     $FDE9                           ; ABC9 AD E9 FD ...
@@ -5980,7 +5985,7 @@ LABFD:  jsr     LAC3C                           ; ABFD 20 3C AC  <.
 LAC19:  rts                                     ; AC19 60       `
 
 ; ----------------------------------------------------------------------------
-LAC1A:  lda     $CF                             ; AC1A A5 CF    ..
+LAC1A:  lda     current_drive                   ; AC1A A5 CF    ..
         and     #$F0                            ; AC1C 29 F0    ).
         beq     LAC19                           ; AC1E F0 F9    ..
         jmp     LAA34                           ; AC20 4C 34 AA L4.
@@ -5998,7 +6003,7 @@ LAC23:  jsr     LAC1A                           ; AC23 20 1A AC  ..
 ; ----------------------------------------------------------------------------
 LAC37:  lda     $FDED                           ; AC37 AD ED FD ...
         beq     LAC43                           ; AC3A F0 07    ..
-LAC3C:  lda     $CF                             ; AC3C A5 CF    ..
+LAC3C:  lda     current_drive                   ; AC3C A5 CF    ..
         and     #$F0                            ; AC3E 29 F0    ).
         lsr     a                               ; AC40 4A       J
         lsr     a                               ; AC41 4A       J
@@ -6172,31 +6177,35 @@ LAD6C:  dey                                     ; AD6C 88       .
         rts                                     ; AD70 60       `
 
 ; ----------------------------------------------------------------------------
-LAD71:  lda     $FDDD                           ; AD71 AD DD FD ...
-        bpl     LAD82                           ; AD74 10 0C    ..
+release_nmi_area:
+        lda     $FDDD                           ; AD71 AD DD FD ...
+        bpl     nmi_area_released               ; AD74 10 0C    ..
         cmp     #$FF                            ; AD76 C9 FF    ..
-        beq     LAD82                           ; AD78 F0 08    ..
+        beq     nmi_area_released               ; AD78 F0 08    ..
         and     #$7F                            ; AD7A 29 7F    ).
         tay                                     ; AD7C A8       .
         ldx     #$0B                            ; AD7D A2 0B    ..
         jsr     osbyte_rom_service_request      ; AD7F 20 EC AD  ..
-LAD82:  lda     #$00                            ; AD82 A9 00    ..
+nmi_area_released:
+        lda     #$00                            ; AD82 A9 00    ..
         sta     $FDDD                           ; AD84 8D DD FD ...
         rts                                     ; AD87 60       `
 
 ; ----------------------------------------------------------------------------
-LAD88:  bit     $FDDD                           ; AD88 2C DD FD ,..
-        bmi     LAD9A                           ; AD8B 30 0D    0.
+claim_nmi_area:
+        bit     $FDDD                           ; AD88 2C DD FD ,..
+        bmi     nmi_area_claimed                ; AD8B 30 0D    0.
         lda     #$8F                            ; AD8D A9 8F    ..
         ldx     #$0C                            ; AD8F A2 0C    ..
         jsr     osbyte_yff                      ; AD91 20 F4 AD  ..
         tya                                     ; AD94 98       .
         ora     #$80                            ; AD95 09 80    ..
         sta     $FDDD                           ; AD97 8D DD FD ...
-LAD9A:  rts                                     ; AD9A 60       `
+nmi_area_claimed:
+        rts                                     ; AD9A 60       `
 
 ; ----------------------------------------------------------------------------
-LAD9B:  jsr     LAAD9                           ; AD9B 20 D9 AA  ..
+LAD9B:  jsr     get_current_physical_drive      ; AD9B 20 D9 AA  ..
         tax                                     ; AD9E AA       .
         jsr     select_ram_page_000             ; AD9F 20 07 BE  ..
         lda     LADB7,x                         ; ADA2 BD B7 AD ...
@@ -6208,7 +6217,7 @@ LADA7:  cmp     $FD00,x                         ; ADA7 DD 00 FD ...
         jmp     LAA34                           ; ADAF 4C 34 AA L4.
 
 ; ----------------------------------------------------------------------------
-LADB2:  stx     $CF                             ; ADB2 86 CF    ..
+LADB2:  stx     current_drive                   ; ADB2 86 CF    ..
         jmp     select_ram_page_001             ; ADB4 4C 0C BE L..
 
 ; ----------------------------------------------------------------------------
@@ -6357,7 +6366,7 @@ LAEB8:  jsr     print_string_255term            ; AEB8 20 17 A9  ..
         bcc     LAEE3                           ; AEDC 90 05    ..
         jsr     LB73C                           ; AEDE 20 3C B7  <.
         bne     LAEB5                           ; AEE1 D0 D2    ..
-LAEE3:  sta     $CF                             ; AEE3 85 CF    ..
+LAEE3:  sta     current_drive                   ; AEE3 85 CF    ..
 LAEE5:  ldx     #$AF                            ; AEE5 A2 AF    ..
         ldy     #$AE                            ; AEE7 A0 AE    ..
         jsr     LB021                           ; AEE9 20 21 B0  !.
@@ -6368,7 +6377,7 @@ LAEE5:  ldx     #$AF                            ; AEE5 A2 AF    ..
                                                 ; AF02 73 20 3A 20 20s :  
         .byte   $7F,$7F,$FF                     ; AF07 7F 7F FF ...
 ; ----------------------------------------------------------------------------
-        jsr     LB74C                           ; AF0A 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; AF0A 20 4C B7  L.
         bne     LAF12                           ; AF0D D0 03    ..
         jmp     LAFB7                           ; AF0F 4C B7 AF L..
 
@@ -6463,7 +6472,7 @@ LAFB7:  jsr     print_string_255term            ; AFB7 20 17 A9  ..
         tax                                     ; AFDF AA       .
         cpx     #$02                            ; AFE0 E0 02    ..
         bne     LAFEC                           ; AFE2 D0 08    ..
-        jsr     LAAD9                           ; AFE4 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; AFE4 20 D9 AA  ..
         cmp     #$05                            ; AFE7 C9 05    ..
         bne     LAFEC                           ; AFE9 D0 01    ..
         inx                                     ; AFEB E8       .
@@ -6479,20 +6488,18 @@ LAFF8:  lda     LB015,x                         ; AFF8 BD 15 B0 ...
         sta     $C4                             ; AFFB 85 C4    ..
         lda     LB019,x                         ; AFFD BD 19 B0 ...
         sta     $C5                             ; B000 85 C5    ..
-        jsr     LAD88                           ; B002 20 88 AD  ..
+        jsr     claim_nmi_area                  ; B002 20 88 AD  ..
         lda     #$00                            ; B005 A9 00    ..
         sta     $FDFE                           ; B007 8D FE FD ...
         sta     $FDED                           ; B00A 8D ED FD ...
         ldy     #$00                            ; B00D A0 00    ..
         jsr     LB062                           ; B00F 20 62 B0  b.
-        jmp     LAD71                           ; B012 4C 71 AD Lq.
+        jmp     release_nmi_area                ; B012 4C 71 AD Lq.
 
 ; ----------------------------------------------------------------------------
-LB015:  bcc     LB037                           ; B015 90 20    . 
-        sbc     $FF,x                           ; B017 F5 FF    ..
-LB019:  ora     ($03,x)                         ; B019 01 03    ..
-        .byte   $03                             ; B01B 03       .
-        .byte   $03                             ; B01C 03       .
+LB015:  .byte   $90,$20,$F5,$FF                 ; B015 90 20 F5 FF. ..
+LB019:  .byte   $01,$03,$03,$03                 ; B019 01 03 03 03....
+; ----------------------------------------------------------------------------
 LB01D:  ldx     #$28                            ; B01D A2 28    .(
         ldy     #$B0                            ; B01F A0 B0    ..
 LB021:  stx     LFDE6                           ; B021 8E E6 FD ...
@@ -6508,10 +6515,8 @@ LB028:  ldx     $B8                             ; B028 A6 B8    ..
         jmp     LB2D1                           ; B032 4C D1 B2 L..
 
 ; ----------------------------------------------------------------------------
-LB035:  .byte   $20                             ; B035 20        
-        .byte   $17                             ; B036 17       .
-LB037:  lda     #$1F                            ; B037 A9 1F    ..
-        .byte   $08,$10                         ; B039 08 10    ..
+LB035:  jsr     print_string_255term            ; B035 20 17 A9  ..
+        .byte   $1F,$08,$10                     ; B038 1F 08 10 ...
         .byte   "Format complete"               ; B03B 46 6F 72 6D 61 74 20 63Format c
                                                 ; B043 6F 6D 70 6C 65 74 65omplete
         .byte   $0D,$0A                         ; B04A 0D 0A    ..
@@ -6643,9 +6648,9 @@ volgen_command:
         sta     $BA                             ; B158 85 BA    ..
         jsr     LB916                           ; B15A 20 16 B9  ..
         jsr     LB279                           ; B15D 20 79 B2  y.
-        lda     $CF                             ; B160 A5 CF    ..
+        lda     current_drive                   ; B160 A5 CF    ..
         and     #$0F                            ; B162 29 0F    ).
-        sta     $CF                             ; B164 85 CF    ..
+        sta     current_drive                   ; B164 85 CF    ..
         jsr     LB758                           ; B166 20 58 B7  X.
         jsr     print_string_255term            ; B169 20 17 A9  ..
         .byte   "V O L G E N"                   ; B16C 56 20 4F 20 4C 20 47 20V O L G 
@@ -6658,7 +6663,7 @@ volgen_command:
                                                 ; B187 65 20 20 20 28 4B 29 20e   (K) 
         .byte   $FF                             ; B18F FF       .
 ; ----------------------------------------------------------------------------
-        lda     $CF                             ; B190 A5 CF    ..
+        lda     current_drive                   ; B190 A5 CF    ..
         jsr     L8EAD                           ; B192 20 AD 8E  ..
         jsr     print_string_255term            ; B195 20 17 A9  ..
         .byte   $1F,$00,$0F                     ; B198 1F 00 0F ...
@@ -6818,7 +6823,7 @@ LB2DE:  ldx     #$00                            ; B2DE A2 00    ..
 LB2EA:  bit     $FF                             ; B2EA 24 FF    $.
         bpl     LB2C4                           ; B2EC 10 D6    ..
         jsr     acknowledge_escape              ; B2EE 20 8F A9  ..
-        jsr     LAD71                           ; B2F1 20 71 AD  q.
+        jsr     release_nmi_area                ; B2F1 20 71 AD  q.
         ldx     $B7                             ; B2F4 A6 B7    ..
         txs                                     ; B2F6 9A       .
         jmp     (LFDE6)                         ; B2F7 6C E6 FD l..
@@ -7264,7 +7269,7 @@ LB5F4:  cmp     #$1B                            ; B5F4 C9 1B    ..
 ; ----------------------------------------------------------------------------
 LB5F9:  jsr     select_ram_page_001             ; B5F9 20 0C BE  ..
         jsr     acknowledge_escape              ; B5FC 20 8F A9  ..
-        jsr     LAD71                           ; B5FF 20 71 AD  q.
+        jsr     release_nmi_area                ; B5FF 20 71 AD  q.
         jsr     LB650                           ; B602 20 50 B6  P.
         ldx     $B7                             ; B605 A6 B7    ..
         txs                                     ; B607 9A       .
@@ -7416,12 +7421,14 @@ LB73C:  lda     #$07                            ; B73C A9 07    ..
 
 ; ----------------------------------------------------------------------------
 LB741:  jsr     LAA16                           ; B741 20 16 AA  ..
-        jsr     LB74C                           ; B744 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; B744 20 4C B7  L.
         bne     LB757                           ; B747 D0 0E    ..
         jmp     LAAD6                           ; B749 4C D6 AA L..
 
 ; ----------------------------------------------------------------------------
-LB74C:  jsr     LAAD9                           ; B74C 20 D9 AA  ..
+; Z set if RAM disk
+is_current_drive_ram_disk:
+        jsr     get_current_physical_drive      ; B74C 20 D9 AA  ..
         and     #$07                            ; B74F 29 07    ).
         cmp     #$04                            ; B751 C9 04    ..
         beq     LB757                           ; B753 F0 02    ..
@@ -7469,7 +7476,7 @@ osword_7f_verify_data:
         stx     $FDE9                           ; B79A 8E E9 FD ...
         lda     ($B0),y                         ; B79D B1 B0    ..
         sta     $BB                             ; B79F 85 BB    ..
-        jsr     LB74C                           ; B7A1 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; B7A1 20 4C B7  L.
         bne     LB7B9                           ; B7A4 D0 13    ..
         ldx     #$0A                            ; B7A6 A2 0A    ..
         ldy     #$00                            ; B7A8 A0 00    ..
@@ -7509,7 +7516,7 @@ osword_7f_seek:
 LB7E2:  rts                                     ; B7E2 60       `
 
 ; ----------------------------------------------------------------------------
-LB7E3:  jsr     LB74C                           ; B7E3 20 4C B7  L.
+LB7E3:  jsr     is_current_drive_ram_disk       ; B7E3 20 4C B7  L.
         clc                                     ; B7E6 18       .
         bne     LB7EC                           ; B7E7 D0 03    ..
         lda     #$00                            ; B7E9 A9 00    ..
@@ -7523,7 +7530,7 @@ osword_7f_command_1b:
         bne     LB7F5                           ; B7F1 D0 02    ..
         lda     #$01                            ; B7F3 A9 01    ..
 LB7F5:  sta     $BB                             ; B7F5 85 BB    ..
-        jsr     LB74C                           ; B7F7 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; B7F7 20 4C B7  L.
         beq     LB818                           ; B7FA F0 1C    ..
         jsr     LB916                           ; B7FC 20 16 B9  ..
         jsr     LB95F                           ; B7FF 20 5F B9  _.
@@ -7693,10 +7700,11 @@ LB8AE:  .word   osword_7f_read_data_or_deleted_data-1; B8AE 8B B7..
 ; ----------------------------------------------------------------------------
         .byte   $00                             ; B8D1 00       .
 ; ----------------------------------------------------------------------------
-LB8D2:  jsr     push_registers_and_tuck_restoration_thunk; B8D2 20 4C A8 L.
-        jsr     LB74C                           ; B8D5 20 4C B7  L.
+fdc_select_current_drive:
+        jsr     push_registers_and_tuck_restoration_thunk; B8D2 20 4C A8 L.
+        jsr     is_current_drive_ram_disk       ; B8D5 20 4C B7  L.
         beq     LB8EE                           ; B8D8 F0 14    ..
-        jsr     LAAD9                           ; B8DA 20 D9 AA  ..
+        jsr     get_current_physical_drive      ; B8DA 20 D9 AA  ..
         and     #$07                            ; B8DD 29 07    ).
         tax                                     ; B8DF AA       .
         lda     $FDED                           ; B8E0 AD ED FD ...
@@ -7708,6 +7716,7 @@ LB8D2:  jsr     push_registers_and_tuck_restoration_thunk; B8D2 20 4C A8 L.
 LB8EE:  rts                                     ; B8EE 60       `
 
 ; ----------------------------------------------------------------------------
+; +0 = $12 = drive 0 side 0 = *DRIVE 0; +1 = $14 = drive 1 side 0 = *DRIVE 1; +2 = $13 = drive 0 side 1 = *DRIVE 2; +3 = $15 = drive 1 side 1 = *DRIVE 3; +4 = $ff = invalid??; +5 = $ff = invalid??; +6 = $18 = ??; +7 = $19 = ??
 fdc_control_table:
         .byte   $12,$14,$13,$15,$FF,$FF,$18,$19 ; B8EF 12 14 13 15 FF FF 18 19........
 ; ----------------------------------------------------------------------------
@@ -7719,9 +7728,9 @@ LB901:  sta     $FDF2                           ; B901 8D F2 FD ...
         rts                                     ; B904 60       `
 
 ; ----------------------------------------------------------------------------
-LB905:  jsr     LB74C                           ; B905 20 4C B7  L.
+LB905:  jsr     is_current_drive_ram_disk       ; B905 20 4C B7  L.
         beq     LB913                           ; B908 F0 09    ..
-        jsr     LB9F3                           ; B90A 20 F3 B9  ..
+        jsr     do_177x_seek                    ; B90A 20 F3 B9  ..
         jsr     LBD16                           ; B90D 20 16 BD  ..
         and     #$40                            ; B910 29 40    )@
         rts                                     ; B912 60       `
@@ -7736,7 +7745,7 @@ LB916:  jsr     select_ram_page_001             ; B916 20 0C BE  ..
         bit     $FDEA                           ; B91B 2C EA FD ,..
         bvc     LB921                           ; B91E 50 01    P.
         asl     a                               ; B920 0A       .
-LB921:  jsr     LB8D2                           ; B921 20 D2 B8  ..
+LB921:  jsr     fdc_select_current_drive        ; B921 20 D2 B8  ..
         jsr     LA875                           ; B924 20 75 A8  u.
         pha                                     ; B927 48       H
         jsr     LBCA0                           ; B928 20 A0 BC  ..
@@ -7770,7 +7779,7 @@ LB95E:  rts                                     ; B95E 60       `
 ; ----------------------------------------------------------------------------
 LB95F:  jsr     LA875                           ; B95F 20 75 A8  u.
         jsr     select_ram_page_001             ; B962 20 0C BE  ..
-        jsr     LB9F3                           ; B965 20 F3 B9  ..
+        jsr     do_177x_seek                    ; B965 20 F3 B9  ..
         ldx     #$05                            ; B968 A2 05    ..
         bit     $FDED                           ; B96A 2C ED FD ,..
         bvc     LB982                           ; B96D 50 13    P.
@@ -7795,7 +7804,7 @@ LB982:  lda     $FDED                           ; B982 AD ED FD ...
 LB996:  lda     $FDED                           ; B996 AD ED FD ...
         and     #$BF                            ; B999 29 BF    ).
         sta     $FDED                           ; B99B 8D ED FD ...
-        jsr     LB8D2                           ; B99E 20 D2 B8  ..
+        jsr     fdc_select_current_drive        ; B99E 20 D2 B8  ..
         lda     #$0A                            ; B9A1 A9 0A    ..
         sta     $FDEB                           ; B9A3 8D EB FD ...
         lda     #$18                            ; B9A6 A9 18    ..
@@ -7811,7 +7820,7 @@ LB9AC:  sta     $FDED                           ; B9AC 8D ED FD ...
 LB9B2:  jsr     LA875                           ; B9B2 20 75 A8  u.
         jsr     LB916                           ; B9B5 20 16 B9  ..
         ldy     #$0B                            ; B9B8 A0 0B    ..
-LB9BA:  lda     LBDBA,y                         ; B9BA B9 BA BD ...
+LB9BA:  lda     nmi_write_routine_same_page,y   ; B9BA B9 BA BD ...
         sta     L0D00,y                         ; B9BD 99 00 0D ...
         dey                                     ; B9C0 88       .
         bpl     LB9BA                           ; B9C1 10 F7    ..
@@ -7840,13 +7849,15 @@ LB9EA:  plp                                     ; B9EA 28       (
         jmp     select_ram_page_001             ; B9F0 4C 0C BE L..
 
 ; ----------------------------------------------------------------------------
-LB9F3:  jsr     LB8D2                           ; B9F3 20 D2 B8  ..
+do_177x_seek:
+        jsr     fdc_select_current_drive        ; B9F3 20 D2 B8  ..
         lda     #$18                            ; B9F6 A9 18    ..
         jsr     write_command                   ; B9F8 20 FA BC  ..
         ldx     #$0F                            ; B9FB A2 0F    ..
 LB9FD:  dex                                     ; B9FD CA       .
         bne     LB9FD                           ; B9FE D0 FD    ..
-LBA00:  lda     #$D0                            ; BA00 A9 D0    ..
+do_177x_force_interrupt:
+        lda     #$D0                            ; BA00 A9 D0    ..
         jmp     write_command                   ; BA02 4C FA BC L..
 
 ; ----------------------------------------------------------------------------
@@ -7859,7 +7870,7 @@ LBA05:  jsr     LA875                           ; BA05 20 75 A8  u.
         lda     #$04                            ; BA13 A9 04    ..
         sta     $FDE9                           ; BA15 8D E9 FD ...
 LBA18:  jsr     LA875                           ; BA18 20 75 A8  u.
-        jsr     LB74C                           ; BA1B 20 4C B7  L.
+        jsr     is_current_drive_ram_disk       ; BA1B 20 4C B7  L.
         bne     LBA23                           ; BA1E D0 03    ..
         jmp     LBE67                           ; BA20 4C 67 BE Lg.
 
@@ -7868,13 +7879,13 @@ LBA23:  lda     $A0                             ; BA23 A5 A0    ..
         pha                                     ; BA25 48       H
         lda     $A1                             ; BA26 A5 A1    ..
         pha                                     ; BA28 48       H
-        jsr     LB8D2                           ; BA29 20 D2 B8  ..
+        jsr     fdc_select_current_drive        ; BA29 20 D2 B8  ..
         jsr     LB916                           ; BA2C 20 16 B9  ..
         lda     $BA                             ; BA2F A5 BA    ..
         jsr     LBC94                           ; BA31 20 94 BC  ..
-        jsr     LBAFB                           ; BA34 20 FB BA  ..
+        jsr     copy_nmi_read_routine           ; BA34 20 FB BA  ..
         lda     $FDEE                           ; BA37 AD EE FD ...
-        sta     $0D2D                           ; BA3A 8D 2D 0D .-.
+        sta     nmi_opt9_value                  ; BA3A 8D 2D 0D .-.
         lda     $FDE9                           ; BA3D AD E9 FD ...
         pha                                     ; BA40 48       H
         and     #$05                            ; BA41 29 05    ).
@@ -7895,7 +7906,7 @@ LBA58:  lda     $A0                             ; BA58 A5 A0    ..
         inc     $A1                             ; BA5C E6 A1    ..
 LBA5E:  lda     #$00                            ; BA5E A9 00    ..
         sta     $A0                             ; BA60 85 A0    ..
-        jsr     LBB07                           ; BA62 20 07 BB  ..
+        jsr     copy_nmi_write_routine          ; BA62 20 07 BB  ..
         ldy     #$04                            ; BA65 A0 04    ..
 LBA67:  jsr     LBAA0                           ; BA67 20 A0 BA  ..
 LBA6A:  lda     $F4                             ; BA6A A5 F4    ..
@@ -7906,7 +7917,7 @@ LBA6A:  lda     $F4                             ; BA6A A5 F4    ..
         and     #$07                            ; BA75 29 07    ).
         pha                                     ; BA77 48       H
         tay                                     ; BA78 A8       .
-        lda     LBD52,y                         ; BA79 B9 52 BD .R.
+        lda     fdc_commands,y                  ; BA79 B9 52 BD .R.
         jsr     write_command                   ; BA7C 20 FA BC  ..
         ldx     #$1E                            ; BA7F A2 1E    ..
 LBA81:  dex                                     ; BA81 CA       .
@@ -7974,16 +7985,18 @@ LBAF1:  lda     LBDC6,y                         ; BAF1 B9 C6 BD ...
         rts                                     ; BAFA 60       `
 
 ; ----------------------------------------------------------------------------
-LBAFB:  ldy     #$4F                            ; BAFB A0 4F    .O
-LBAFD:  lda     LBD5C,y                         ; BAFD B9 5C BD .\.
+copy_nmi_read_routine:
+        ldy     #$4F                            ; BAFB A0 4F    .O
+LBAFD:  lda     nmi_read_routine,y              ; BAFD B9 5C BD .\.
         sta     L0D00,y                         ; BB00 99 00 0D ...
         dey                                     ; BB03 88       .
         bpl     LBAFD                           ; BB04 10 F7    ..
         rts                                     ; BB06 60       `
 
 ; ----------------------------------------------------------------------------
-LBB07:  ldy     #$0D                            ; BB07 A0 0D    ..
-LBB09:  lda     LBDAC,y                         ; BB09 B9 AC BD ...
+copy_nmi_write_routine:
+        ldy     #$0D                            ; BB07 A0 0D    ..
+LBB09:  lda     nmi_write_routine,y             ; BB09 B9 AC BD ...
         sta     $0D03,y                         ; BB0C 99 03 0D ...
         dey                                     ; BB0F 88       .
         bpl     LBB09                           ; BB10 10 F7    ..
@@ -8174,7 +8187,7 @@ LBC9C:  sta     fdc_track                       ; BC9C 8D F9 FC ...
         rts                                     ; BC9F 60       `
 
 ; ----------------------------------------------------------------------------
-LBCA0:  jsr     LAAD9                           ; BCA0 20 D9 AA  ..
+LBCA0:  jsr     get_current_physical_drive      ; BCA0 20 D9 AA  ..
         and     #$07                            ; BCA3 29 07    ).
         ldx     #$02                            ; BCA5 A2 02    ..
         cmp     #$06                            ; BCA7 C9 06    ..
@@ -8228,7 +8241,7 @@ write_data:
         rts                                     ; BD05 60       `
 
 ; ----------------------------------------------------------------------------
-LBD06:  jsr     LB74C                           ; BD06 20 4C B7  L.
+LBD06:  jsr     is_current_drive_ram_disk       ; BD06 20 4C B7  L.
         beq     LBD13                           ; BD09 F0 08    ..
         lda     fdc_status_or_cmd               ; BD0B AD F8 FC ...
         eor     #$80                            ; BD0E 49 80    I.
@@ -8259,7 +8272,7 @@ LBD33:  lda     $B9                             ; BD33 A5 B9    ..
         beq     LBD51                           ; BD35 F0 1A    ..
         bit     $FF                             ; BD37 24 FF    $.
         bpl     LBD51                           ; BD39 10 16    ..
-        jsr     LBA00                           ; BD3B 20 00 BA  ..
+        jsr     do_177x_force_interrupt         ; BD3B 20 00 BA  ..
         lda     #$00                            ; BD3E A9 00    ..
         sta     fdc_control                     ; BD40 8D FC FC ...
         jsr     acknowledge_escape              ; BD43 20 8F A9  ..
@@ -8271,12 +8284,13 @@ LBD33:  lda     $B9                             ; BD33 A5 B9    ..
 LBD51:  rts                                     ; BD51 60       `
 
 ; ----------------------------------------------------------------------------
-LBD52:  .byte   $90,$B4,$90,$B5,$90             ; BD52 90 B4 90 B5 90.....
-LBD57:  .byte   $3C,$7C,$1C                     ; BD57 3C 7C 1C <|.
+; +0 = $90 = read multiple sectors; +1 = $b4 = write multiple sectors with 30ms delay; +2 = $90 = read multiple sectors; +3 = $b5 = write multiple sectors, deleted data, with 30ms delay; +4 = $90 = read multiple sectors
+fdc_commands:
+        .byte   $90,$B4,$90,$B5,$90             ; BD52 90 B4 90 B5 90.....
+LBD57:  .byte   $3C,$7C,$1C,$5C,$3C             ; BD57 3C 7C 1C 5C 3C<|.\<
 ; ----------------------------------------------------------------------------
-        .byte   $5C                             ; BD5A 5C       \
-        .byte   $3C                             ; BD5B 3C       <
-LBD5C:  sta     $0D2A                           ; BD5C 8D 2A 0D .*.
+nmi_read_routine:
+        sta     $0D2A                           ; BD5C 8D 2A 0D .*.
         lda     fdc_data                        ; BD5F AD FB FC ...
         sta     $FD00                           ; BD62 8D 00 FD ...
         inc     $0D07                           ; BD65 EE 07 0D ...
@@ -8317,12 +8331,14 @@ LBD8D:  lda     fdc_status_or_cmd               ; BD8D AD F8 FC ...
 LBDAB:  rts                                     ; BDAB 60       `
 
 ; ----------------------------------------------------------------------------
-LBDAC:  lda     $FD00                           ; BDAC AD 00 FD ...
+nmi_write_routine:
+        lda     $FD00                           ; BDAC AD 00 FD ...
         sta     fdc_data                        ; BDAF 8D FB FC ...
         inc     $0D04                           ; BDB2 EE 04 0D ...
-        bne     LBDBA                           ; BDB5 D0 03    ..
+        bne     nmi_write_routine_same_page     ; BDB5 D0 03    ..
         inc     $0D05                           ; BDB7 EE 05 0D ...
-LBDBA:  pha                                     ; BDBA 48       H
+nmi_write_routine_same_page:
+        pha                                     ; BDBA 48       H
         lda     fdc_data                        ; BDBB AD FB FC ...
         sta     $0D0C                           ; BDBE 8D 0C 0D ...
         inc     $0D05                           ; BDC1 EE 05 0D ...
@@ -8397,7 +8413,7 @@ select_ram_page_by_lsb:
 
 ; ----------------------------------------------------------------------------
 chadfs_request_04:
-        jsr     LAD88                           ; BE28 20 88 AD  ..
+        jsr     claim_nmi_area                  ; BE28 20 88 AD  ..
         jsr     select_ram_page_001             ; BE2B 20 0C BE  ..
         lda     #$01                            ; BE2E A9 01    ..
         sta     $FDE9                           ; BE30 8D E9 FD ...
@@ -8438,7 +8454,7 @@ LBE67:  jsr     select_ram_page_001             ; BE67 20 0C BE  ..
         rts                                     ; BE78 60       `
 
 ; ----------------------------------------------------------------------------
-LBE79:  jsr     LAAD9                           ; BE79 20 D9 AA  ..
+LBE79:  jsr     get_current_physical_drive      ; BE79 20 D9 AA  ..
 LBE7C:  ldy     #$0A                            ; BE7C A0 0A    ..
         ldx     #$00                            ; BE7E A2 00    ..
         cmp     #$04                            ; BE80 C9 04    ..
