@@ -103,9 +103,5 @@ The build process does the following:
 
 Type `make` to run it.
 
-(So far, I've been working entirely with the output from da65. Once
-I'm happy I've got all (or nearly all...) the labels and code/data
-sorted out, I'll be taking a copy of the initial disassembly, making
-it -friendly, and hand-editing
-it to add comments, appropriate org directives for the NMI routines,
-`<` and `>` operators for the jump tables, and so on.
+(Once I start hand-editing the disassembly, these build steps will
+become mostly redundant.)
