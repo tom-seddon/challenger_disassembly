@@ -10,12 +10,13 @@ the BBC Master).
 
 The current disassembly is the raw output from
 [da65](https://cc65.github.io/doc/da65.html), with meaningful labels
-and (hopefully) most of the code and data separated out. In the long,
-I intend to start working on it by and, making it
-[64tass](http://tass64.sourceforge.net/)-friendly, adding comments,
-adding appropriate org directives for the NMI routines, turning
-absolute addresses into label-relative offsets when necessary, adding
-`<` and `>` operators where appropriate, ond so on...
+and (hopefully) most of the code and data separated out. Once I'm
+happy this bit all makes sense, I'll probably start working on it by
+hand, making it [64tass](http://tass64.sourceforge.net/)-friendly,
+adding comments, adding appropriate org directives for the NMI
+routines, turning absolute addresses into label-relative offsets when
+necessary, adding `<` and `>` operators where appropriate, and so
+on...
 
 # Challenger info
 
@@ -46,21 +47,30 @@ myself, and no problems noted so far, but I don't store anything
 important on discs...
 
 The patched ROM should work on the Master, with or without the ADFS
-part, but I haven't tested this.
+part, but I haven't tested this yet.
 
 # Repo layout
+
+## `101`
+
+Quick disassembly of the Challenger 1.01 ROM - see
+[`CH101_da65.asm`](./101/CH101_da65.asm). (There is a later 1.03 ROM,
+but 1.01 is the one that my BBC Micro happened to have, so I decided
+to go with that.)
+
+Not sure how far I'm going to go with this - so far, it's for
+comparison to the 2.00 ROM only.
 
 ## `200`
 
 Disassembly of Challenger 2.00 ROM. The ROM is 32K, so it's in two
-parts - see `CH200_da65.asm` and `CHADFS_da65.asm`
+parts - see [`CH200_da65.asm`](./200/CH200_da65.asm) and
+[`CHADFS_da65.asm`](./200/CHADFS_da65.asm).
 
-## `101`
+## `beeb`
 
-Quick disassembly of the Challenger 1.01 ROM - see `CH101_da65.asm`.
-
-Not sure how far I'm going to go with this. For now it's for
-comparison to the 2.00 ROM only.
+[BeebLink](https://github.com/tom-seddon/beeblink) volume holding some
+test programs and the patched 2.00 ROM for use with BBC B.
 
 ## `originals`
 
@@ -70,11 +80,6 @@ Original ROMs, random Slogger advert pic, and anything else I find.
 
 Tools for use on PC. So far, just the ROM patcher that makes the BBC B
 version of Challenger 2.00.
-
-## `beeb`
-
-[BeebLink](https://github.com/tom-seddon/beeblink) volume holding some
-test programs and the patched 2.00 ROM for use with BBC B.
 
 # Building
 
@@ -94,7 +99,7 @@ The build process does the following:
 * run da65 to generate initial Challenger 2.00 disassembly (outputs
   `./200/CH200_da65.asm` and `./200/CHADFS_da65.asm`)
 * run `./tools/patch_ch200.py` to generate patched Challenger 2.00 ROM
-  for use on BBC B (outputs `./beeb/chaldis/1/R.CH200P`)
+  for use on BBC B (outputs `./beeb/chaldis/1/R.PCH200`)
 
 Type `make` to run it.
 
