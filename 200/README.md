@@ -6,10 +6,10 @@ CHADFS makes these requests by calling $bff2 with the reason code in
 A.
 
 0 = handle `*CONFIG*`
-1 = ?
+1 = transfer data
 2 = test Challenger presence and RAM size. Set ROM status byte at $0DFx to 0 (no Challenger), 1 (256K) or 2 (512K)
 3 = reset drive mappings for both ADFS and DFS
-4 = ?
+4 = format the RAM disc as an ADFS volume
 
 ## Challenger RAM layout
 
@@ -25,7 +25,7 @@ The R distinguishes this from BBC RAM.
 * R$00100 - bottom 7 bits are $65 if Challenger RAM initialised. Top
   bit is 1 if Challenger FS is active
   
-* R$001FD - $e5...??
+* R$001FD - equals $e5 if the RAM discs have been formatted
 
 * R$001DD - if not $ff, bit 7 set if NMI area claimed. Low nybble
   is slot of previous owner?

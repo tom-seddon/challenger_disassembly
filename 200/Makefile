@@ -19,7 +19,7 @@ all:
 	echo "ASMINC {file \"CH200.inc\";};" >> $(INF200)
 	cat ./CH200.inf >> $(INF200)
 	da65 -o $(TMP)/CH200.asm -S 0x8000 -i $(INF200) $(DAOPTS) CH200.rom
-	cat $(TMP)/CH200.asm | tail -n +3 > ./CH200_da65.asm
+	cat $(TMP)/CH200.asm | tail -n +3 | perl ../tools/paste_comments.pl chal200_stripped.asm > ./CH200_da65.asm
 
 	echo > $(INFADFS)
 	python CHADFS.py >> $(INFADFS)
