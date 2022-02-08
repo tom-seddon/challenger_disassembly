@@ -1,5 +1,5 @@
 svc=$802f
-print_string_2_nterm=$a8ad ; can't figure out what this bit is...
+print_string_2_nterm=$a8ad
 fdc_status_or_cmd=$fcf8
 fdc_track=$fcf9
 fdc_sector=$fcfa
@@ -119,7 +119,7 @@ osfsc_eof=$9808
 osfsc_run=$9820 ; does triple duty - *RUN, */ and libfs *RUN
 osfsc_star=$989c
 osfsc_cat=$98ae
-osfsc_shut_down_fs=$8905
+osfsc_shut_down_fs=$9905
 osfsc_get_handle_range=$9917
 osfsc_oscli=$991c
 osfsc_ex=$8c0b

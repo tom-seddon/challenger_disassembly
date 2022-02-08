@@ -82,8 +82,9 @@ def main():
 
             range(offset,offset,'bytetable','')
             offset+=1
+        range(end_addr-0x8000,end_addr-0x8000+1,'dbytetable','')
 
-    do_command_table(0x90b4,0x9145,'_command') # DFS/CHAL
+    do_command_table(0x90b4,0x9146,'_command') # DFS/CHAL
     do_command_table(0x9148,0x918e,'_command') # UTILS
     do_command_table(0x9190,0x91a5,'_help') # help subjects
 

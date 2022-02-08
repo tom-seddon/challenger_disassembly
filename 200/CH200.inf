@@ -29,7 +29,7 @@ range{start$ae4c;end$ae54;type bytetable;};
 range{start$ae55;end$ae5d;type bytetable;};
 range{start$97f4;end$9807;type rtstable;};
 
-range{start$adb7;end$adbe;type bytetable;};
+range{start$adb7;end$adbb;type bytetable;};
 range{start$b8ef;end$b8f6;type bytetable;};
 range{start$b015;end$b01c;type bytetable;};
 range{start$958a;end$958c;type texttable;};
