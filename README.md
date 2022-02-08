@@ -90,6 +90,7 @@ Prerequisites:
 
 * [da65](https://cc65.github.io/doc/da65.html)
 * Python 2.x on PATH
+* Perl 5.x on PATH
 * Some kind of Unix with all the usual Unix stuff (I use Mac OS X)
 
 The build process does the following:
@@ -98,6 +99,8 @@ The build process does the following:
   `./101/CH101_da65.asm`)
 * run da65 to generate initial Challenger 2.00 disassembly (outputs
   `./200/CH200_da65.asm` and `./200/CHADFS_da65.asm`)
+* run Perl to paste [Greg Cook's comments](http://regregex.bbcmicro.net/chal200.asm.txt)
+  into the Challenger 2.00 disassembly
 * run `./tools/patch_ch200.py` to generate patched Challenger 2.00 ROM
   for use on BBC B (outputs `./beeb/chaldis/1/R.PCH200`)
 
