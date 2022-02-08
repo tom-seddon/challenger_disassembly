@@ -38,7 +38,7 @@ of changes:
 
 * initialise DFS properly on reset
 * tidy up wonky `*CAT` output
-* advertises itself as version `200A`
+* advertises itself as version `200B`
 
 The patched ROM image is in the repo as `beeb/chaldis/1/R.PCH200`.
 
