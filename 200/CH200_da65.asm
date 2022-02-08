@@ -13,7 +13,6 @@ current_drive   := $00CF
 L0100           := $0100
 fscv            := $021E
 L0406           := $0406
-L0810           := $0810
 L0D00           := $0D00
 L0D11           := $0D11
 L0D2C           := $0D2C
@@ -51,7 +50,7 @@ osword          := $FFF1
 osbyte          := $FFF4
 oscli           := $FFF7
 ; ----------------------------------------------------------------------------
-; Commentary by Greg Cook, 7 February 2022
+; Commentary by Greg Cook, 8 February 2022
 ; Taken from http://regregex.bbcmicro.net/chal200.asm.txt
         brk                                     ; Language entry
         brk
@@ -1576,7 +1575,8 @@ L8B2D:  rts
 ; Allow wildcard characters in filename
 L8B2E:  lda     #$23
         bne     L8B34
-L8B32:  lda     #$FF                            ; Disallow wildcard characters in filename
+; Disallow wildcard characters in filename
+L8B32:  lda     #$FF
 L8B34:  sta     $FDD8
         rts
 
@@ -3955,12 +3955,12 @@ osargs_get_command_line_tail:
         lda     #$FF                            ; command line is always in I/O processor
         sta     $02,x                           ; so return a host address, &FFFFxxxx
         sta     $03,x
-        .byte   $AD                             ; copy address of command line arguments
-L9B96:  .byte   $E2
-        sbc     a:$95,x
-        .byte   $AD                             ; to user's OSARGS block
-L9B9B:  .byte   $E3
-        sbc     $0195,x
+L9B96           := * + 1
+        lda     $FDE2                           ; copy address of command line arguments
+        sta     $00,x                           ; from workspace where stored by OSFSC 2..4
+L9B9B           := * + 1
+        lda     $FDE3                           ; to user's OSARGS block
+        sta     $01,x
         lda     #$00                            ; return A=0
         rts
 
@@ -4097,9 +4097,8 @@ L9C8F:  pla                                     ; else return C=0
 L9C91:  .byte   $20,$40,$60,$80
 L9C95:  .byte   $A0
 ; Table of channel open bit masks for file handles &11..15
-L9C96:  .byte   $80,$40
+L9C96:  .byte   $80,$40,$20,$10,$08
 ; ----------------------------------------------------------------------------
-        jsr     L0810
 ; Ensure file handle valid and open
 L9C9B:  pha                                     ; save A on entry, Y = file handle
         jsr     L9CAF                           ; convert file handle to workspace pointer

@@ -1,4 +1,4 @@
-;Commentary by Greg Cook, 7 February 2022
+;Commentary by Greg Cook, 8 February 2022
 ;Taken from http://regregex.bbcmicro.net/chal200.asm.txt
 8000 EQUB &00                   ;Language entry
 8001 EQUB &00
@@ -1448,8 +1448,8 @@
 .PB2E                           ;Allow wildcard characters in filename
 8B2E A9 23     LDA #&23
 8B30 D0 02     BNE PB34
-.PB32
-8B32 A9 FF     LDA #&FF         ;Disallow wildcard characters in filename
+.PB32                           ;Disallow wildcard characters in filename
+8B32 A9 FF     LDA #&FF
 .PB34
 8B34 8D D8 FD  STA &FDD8
 8B37 60        RTS
