@@ -1,4 +1,4 @@
-;Commentary by Greg Cook, 8 February 2022
+;Commentary by Greg Cook, 26 March 2022
 ;Taken from http://regregex.bbcmicro.net/chal200.asm.txt
 8000 EQUB &00                   ;Language entry
 8001 EQUB &00
@@ -182,7 +182,7 @@
 .P165
 8165 C8        INY              ;offset 1 = address
 8166 A2 02     LDX #&02
-8168 20 C2 89  JSR P9C2         ;copy address to &BE,F,&106F,70
+8168 20 C2 89  JSR P9C2         ;copy address to &BE,F,&FDB5,6
 816B B1 B0     LDA (&B0),Y      ;y = 5 on exit; offset 5 = no. parameters
 816D 48        PHA              ;save number of parameters
 816E C8        INY              ;increment offset
@@ -2884,7 +2884,7 @@
 96B9 8D B4 FD  STA &FDB4
 96BC AD B5 FD  LDA &FDB5        ;and high bytes of address
 96BF 2D B6 FD  AND &FDB6        ;a=&FF if address is in the host
-96C2 0D CD FD  ORA &FDCD        ;a=&FF if Tube absent (&10D6=NOT MOS flag!)
+96C2 0D CD FD  ORA &FDCD        ;a=&FF if Tube absent (&FDCD=NOT MOS flag!)
 96C5 49 FF     EOR #&FF         ;invert; A>0 if transferring over Tube
 96C7 8D CC FD  STA &FDCC        ;store Tube flag
 96CA 38        SEC
@@ -3133,7 +3133,7 @@
 9866 8D E3 FD  STA &FDE3
 9869 AD B7 FD  LDA &FDB7        ;and high bytes of address
 986C 2D B8 FD  AND &FDB8        ;a=&FF if address is in the host
-986F 0D CD FD  ORA &FDCD        ;a=&FF if Tube absent (&10D6=NOT MOS flag!)
+986F 0D CD FD  ORA &FDCD        ;a=&FF if Tube absent (&FDCD=NOT MOS flag!)
 9872 C9 FF     CMP #&FF         ;if host address or Tube absent
 9874 F0 16     BEQ Q88C         ;then jump indirect
 9876 A5 C0     LDA &C0          ;else copy low word of exec address
@@ -4342,7 +4342,7 @@ A184 A0 00     LDY #&00
 A186 20 D2 89  JSR P9D2         ;copy word at pointer to &BC,D
 .R189
 A189 20 C2 89  JSR P9C2         ;copy next four dwords to &BE..C5 (low words)
-A18C C0 12     CPY #&12         ;&106F..76 (high words)
+A18C C0 12     CPY #&12         ;&FDB5..C (high words)
 A18E D0 F9     BNE R189
 A190 68        PLA              ;transfer call number to X
 A191 AA        TAX

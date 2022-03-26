@@ -50,7 +50,7 @@ osword          := $FFF1
 osbyte          := $FFF4
 oscli           := $FFF7
 ; ----------------------------------------------------------------------------
-; Commentary by Greg Cook, 8 February 2022
+; Commentary by Greg Cook, 26 March 2022
 ; Taken from http://regregex.bbcmicro.net/chal200.asm.txt
         brk                                     ; Language entry
         brk
@@ -246,7 +246,7 @@ svc_handle_unknown_osword:
         sta     current_drive                   ; set as current drive
 L8165:  iny                                     ; offset 1 = address
         ldx     #$02
-        jsr     L89C2                           ; copy address to &BE,F,&106F,70
+        jsr     L89C2                           ; copy address to &BE,F,&FDB5,6
         lda     ($B0),y                         ; y = 5 on exit; offset 5 = no. parameters
         pha                                     ; save number of parameters
         iny                                     ; increment offset
@@ -3228,7 +3228,7 @@ L96AE:  jsr     select_ram_page_001             ; page in main workspace
         sta     $FDB4
         lda     $FDB5                           ; and high bytes of address
         and     $FDB6                           ; a=&FF if address is in the host
-        ora     $FDCD                           ; a=&FF if Tube absent (&10D6=NOT MOS flag!)
+        ora     $FDCD                           ; a=&FF if Tube absent (&FDCD=NOT MOS flag!)
         eor     #$FF                            ; invert; A>0 if transferring over Tube
         sta     $FDCC                           ; store Tube flag
         sec
@@ -3517,7 +3517,7 @@ L9855:  jsr     LA1F8                           ; load file into memory
         sta     $FDE3
         lda     $FDB7                           ; and high bytes of address
         and     $FDB8                           ; a=&FF if address is in the host
-        ora     $FDCD                           ; a=&FF if Tube absent (&10D6=NOT MOS flag!)
+        ora     $FDCD                           ; a=&FF if Tube absent (&FDCD=NOT MOS flag!)
         cmp     #$FF                            ; if host address or Tube absent
         beq     L988C                           ; then jump indirect
         lda     L00C0                           ; else copy low word of exec address
@@ -4779,7 +4779,7 @@ chosfile:
         ldy     #$00
         jsr     L89D2                           ; copy word at pointer to &BC,D
 LA189:  jsr     L89C2                           ; copy next four dwords to &BE..C5 (low words)
-        cpy     #$12                            ; &106F..76 (high words)
+        cpy     #$12                            ; &FDB5..C (high words)
         bne     LA189
         pla                                     ; transfer call number to X
         tax
