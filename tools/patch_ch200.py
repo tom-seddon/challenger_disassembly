@@ -17,8 +17,8 @@ def main(options):
         for i in range(len(s)): data[addr+i-0x8000]=ord(s[i])
 
     # Adjust version number.
-    pokestr(0x8016,'200A')
-    pokestr(0xae74,'200A')
+    pokestr(0x8016,'200B')
+    pokestr(0xae74,'200B')
     
     # Reset all drive mappings on startup.
     poke(0x804e,0x7e)
@@ -27,6 +27,7 @@ def main(options):
     # Make *CAT look less of a mess.
     pokestr(0x8fbb,'Directory :'+chr(0xea))
     pokestr(0x8eb0,'Drive '+chr(0xea))
+    poke(0x8f38,0x0f)
     poke(0x8f3f,6)
     pokestr(0x8ef8,'('+chr(0xea))
 

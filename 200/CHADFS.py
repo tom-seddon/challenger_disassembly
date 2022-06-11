@@ -42,7 +42,7 @@ def main():
         else: offset+=1
 
     # extended vectors table
-    for i in range(8):
+    for i in range(7):
         offset=0x9b70+i*3-0x8000
         infrange(offset,offset+1,'addrtable','')
         infrange(offset+2,offset+2,'bytetable','')
@@ -77,8 +77,9 @@ def main():
 
             infrange(offset,offset,'bytetable','')
             offset+=1
+        infrange(end_addr-0x8000,end_addr-0x8000+1,'dbytetable','')
 
-    do_command_table(0x9df2,0x9e84,'_command')
+    do_command_table(0x9df2,0x9e85,'_command')
     
 
 if __name__=='__main__': main()

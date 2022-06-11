@@ -1,7 +1,8 @@
 range{start$8006;end$8008;type bytetable;};
 range{start$8009;end$802a;type texttable;};
 range{start$a5d1;end$a635;type texttable;};
-range{start$9c91;end$9c97;type bytetable;};
+range{start$9c91;end$9c95;type bytetable;};
+range{start$9c96;end$9c9a;type bytetable;};
 
 # an exception to the usual $a892 arrangement
 # range{start$bcb2;end$bcb8;type texttable;};
@@ -29,7 +30,8 @@ range{start$ae4c;end$ae54;type bytetable;};
 range{start$ae55;end$ae5d;type bytetable;};
 range{start$97f4;end$9807;type rtstable;};
 
-range{start$adb7;end$adbe;type bytetable;};
+range{start$adb7;end$adbb;type bytetable;};
 range{start$b8ef;end$b8f6;type bytetable;};
 range{start$b015;end$b01c;type bytetable;};
 range{start$958a;end$958c;type texttable;};
+range{start$9b95;end$9b9c;type code;};
